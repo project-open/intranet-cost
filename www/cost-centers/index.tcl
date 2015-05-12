@@ -116,7 +116,7 @@ db_foreach cost_centers $main_sql {
 		<td><a href=[export_vars -base "/intranet/users/view" -override {{user_id $manager_id}}]>$manager_name</a></td>
 	"
     } else {
-	append table "<td colspan='6'></td>"
+	append table "<td colspan='7'></td>"
     }
 
     append table "
