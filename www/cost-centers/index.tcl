@@ -46,107 +46,117 @@ set help_txt [lang::message::lookup "" intranet-cost.Cost_Center_help $help_str]
 
 set table_header "
 <tr>
-  <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+  <td class=rowtitle>[im_gif -translate_p 1 del "Delete Cost Center"]</td>
+  <td class=rowtitle>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
   <td class=rowtitle align=center>[lang::message::lookup "" intranet-cost.CostCenter "Cost Center Code"]</td>
   <td class=rowtitle align=center>[lang::message::lookup "" intranet-cost.Type "Type"]</td>
   <td class=rowtitle align=center>[lang::message::lookup "" intranet-cost.DepartmentP "Dpt.?"]</td>
   <td class=rowtitle align=center>[lang::message::lookup "" intranet-cost.CostCenterStatus "Status"]</td>
   <td class=rowtitle align=center>[lang::message::lookup "" intranet-cost.InheritFrom "Inherit Permsissons From"]</td>
   <td class=rowtitle align=center>[lang::message::lookup "" intranet-cost.Manager "Manager"]</td>
-  <td class=rowtitle align=center>[lang::message::lookup "" intranet-cost.Employees "Employees"]</td>
-  <td class=rowtitle>[im_gif -translate_p 1 del "Delete Cost Center"]</td>
 </tr>
 "
 
 # ------------------------------------------------------
-# Main SQL: Extract the permissions for all Cost Centers
+# Determine employee-cost_center membership
+# and store in hash array
+# ------------------------------------------------------
+
+set employee_cc_map_sql "
+	select	m.cost_center_id,
+		e.employee_id as employee_id,
+		im_name_from_user_id(e.employee_id) as employee_name
+	from	im_cost_centers m,
+		im_employees e
+	where	e.department_id = m.cost_center_id and
+		e.employee_id not in (
+			-- Exclude deleted or disabled users
+			select  m.member_id
+			from    group_member_map m,
+				membership_rels mr
+			where   m.group_id = acs__magic_object_id('registered_users') and
+				m.rel_id = mr.rel_id and
+				m.container_id = m.group_id and
+				mr.member_state != 'approved'
+		)
+	order by employee_name, m.cost_center_id
+"
+db_foreach cost_centers $employee_cc_map_sql {
+    set employee_list []
+    if {[info exists employee_hash($cost_center_id)]} {
+	set employee_list $employee_hash($cost_center_id)
+    }
+    lappend employee_list "<nobr><a href=[export_vars -base "/intranet/users/view" -override {{user_id $employee_id}}]>$employee_name</a></nobr>"
+    set employee_hash($cost_center_id) $employee_list
+}
+
+
+# ------------------------------------------------------
+# List Cost Centers
 # ------------------------------------------------------
 
 set main_sql "
-	select distinct
-		m.*,
-		im_name_from_id(m.cost_center_type_id) as cost_center_type_name,
+	select	m.*,
+		im_name_from_id(m.cost_center_type_id) as cost_center_type,
+		im_name_from_id(m.cost_center_status_id) as cost_center_status,
 		length(cost_center_code) / 2 as indent_level,
-		(9 - (length(cost_center_code)/2)) as colspan_level,
 		im_name_from_user_id(m.manager_id) as manager_name,
-		e.employee_id as employee_id,
-		im_name_from_user_id(e.employee_id) as employee_name,
 		acs_object__name(o.context_id) as context,
-                o.tree_sortkey,
-                tree_level(o.tree_sortkey) as tree_level
-	from
-		acs_objects o,
+		o.tree_sortkey,
+		tree_level(o.tree_sortkey) as tree_level
+	from	acs_objects o,
 		im_cost_centers m
-		LEFT JOIN (
-			select	e.*
-			from	im_employees e,
-				cc_users u
-			where	e.employee_id = u.user_id and
-				u.member_state = 'approved'
-		) e ON (e.department_id = m.cost_center_id)
-	where
-		o.object_id = m.cost_center_id
-	order by cost_center_code,employee_name
+	where	o.object_id = m.cost_center_id
+	order by cost_center_code
 "
 
 set table ""
 set ctr 0
 set old_package_name ""
-set last_id 0
 set space "&nbsp; &nbsp; &nbsp; "
-
 db_foreach cost_centers $main_sql {
     incr ctr
     set object_id $cost_center_id
-    append table "\n<tr$bgcolor([expr $ctr % 2])>\n"
-
     set sub_indent ""
     for {set i 1} {$i < $tree_level} {incr i} { append sub_indent $space }
 
-    set cost_center_status [im_category_from_id $cost_center_status_id] 
+    set employee_list []
+    if {[info exists employee_hash($cost_center_id)]} {
+	set employee_list $employee_hash($cost_center_id)
+    }
 
-    if { $last_id != $cost_center_id } {
-        append table "
+    append table "
+		<tr$bgcolor([expr $ctr % 2])>
+		<td><input type=checkbox name=cost_center_id.$cost_center_id></td>
 		<td><nobr>$sub_indent <a href=$cost_center_url?cost_center_id=$cost_center_id&return_url=$return_url>$cost_center_name</a></nobr></td>
-	        <td>$cost_center_code</td>
-		<td>$cost_center_type_name</td>
+		<td>$cost_center_code</td>
+		<td>$cost_center_type</td>
 		<td>$department_p</td>
 		<td>$cost_center_status</td>
 		<td>$context</td>
 		<td><a href=[export_vars -base "/intranet/users/view" -override {{user_id $manager_id}}]>$manager_name</a></td>
-	"
-    } else {
-	append table "<td colspan='7'></td>"
-    }
-
-    append table "
-	  <td>
-	      <nobr><a href=[export_vars -base "/intranet/users/view" -override {{user_id $employee_id}}]>$employee_name</a></nobr>
-	  </td>
-	  <td>
-       "
-    
-    # Add checkbox to last column when cc line
-    if {$last_id!=$cost_center_id} { append table "<input type=checkbox name=cost_center_id.$cost_center_id>" }
-
-    append table "
-	  </td>
-	</tr>
+		</tr>
     "
-    set last_id $cost_center_id
+    if {{} != $employee_list} {
+	append table "
+		<tr$bgcolor([expr $ctr % 2])><td colspan=2 align=right>&nbsp;</td><td colspan=6>
+		[join $employee_list ", "]
+		</td></tr>
+        "
+    }
 }
 
 append table "
-        <tr>
-          <td colspan='10' align=right><input type='submit' value='Del'></td>
-        </tr>
+	<tr>
+	  <td colspan='8'><input type='submit' value='Del'></td>
+	</tr>
 "
 
 append left_navbar_html "
-        <div class='filter-block'>
-	        <div class='filter-title'>#intranet-cost.AdminCostCenter#</div>
+	<div class='filter-block'>
+		<div class='filter-title'>#intranet-cost.AdminCostCenter#</div>
 		<ul>
 		    <li><a href=new?[export_url_vars return_url]>[lang::message::lookup "" intranet-cost.CreateNewCostCenter "Create new Cost Center"]</a</li>
 		</ul>
-        </div>
+	</div>
 "
