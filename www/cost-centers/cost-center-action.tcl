@@ -37,6 +37,11 @@ set top_company_cc [im_cost_center_company]
 if {[catch {
 
     db_transaction {
+	db_dml acs_object_context_id "update acs_objects set context_id = null where context_id in ([join $cost_center_list ", "])"
+	db_dml task_depts "update im_timesheet_tasks set cost_center_id = null where cost_center_id in ([join $cost_center_list ", "])"
+	db_dml context_index "delete from acs_object_context_index where object_id in ([join $cost_center_list ", "])"
+	db_dml context_index2 "delete from acs_object_context_index where ancestor_id in ([join $cost_center_list ", "])"
+	db_dml perms "delete from acs_permissions where object_id in ([join $cost_center_list ", "])"
 	db_dml null_cc "update im_employees set department_id = :top_company_cc where department_id in ([join $cost_center_list ", "])"
 	db_dml null_cc "update im_costs set cost_center_id = :top_company_cc where cost_center_id in ([join $cost_center_list ", "])"
 	db_dml del_cost_centers "delete from im_cost_centers where cost_center_id in ([join $cost_center_list ", "])"
