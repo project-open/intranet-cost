@@ -6,7 +6,7 @@
 
 <form action="/intranet-cost/costs/cost-action" method="POST">
 <%= [export_form_vars company_id cost_id return_url]%>
-<table width=100% cellpadding=2 cellspacing=2 border=0>
+<table width="100%" cellpadding=2 cellspacing=2 border=0>
             @table_header_html;noquote@
             @table_body_html;noquote@
             @table_continuation_html;noquote@
