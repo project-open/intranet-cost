@@ -37,11 +37,11 @@ set focus "cost.var_name"
 # Setup Cost Item Variables
 # ------------------------------------------------------------------
 
-set payment_days [ad_parameter -package_id [im_package_cost_id] "DefaultProviderBillPaymentDays" "" 60]
+set payment_days [im_parameter -package_id [im_package_cost_id] "DefaultProviderBillPaymentDays" "" 60]
 set vat 0
 set tax 0
 
-set currency [ad_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
+set currency [im_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
 set form_mode "edit"
 
 

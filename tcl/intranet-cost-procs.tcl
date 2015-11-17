@@ -1246,7 +1246,7 @@ ad_proc im_costs_project_finance_component {
     set view_mode "view"
 
     # Default Currency
-    set default_currency [ad_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
+    set default_currency [im_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
 
     # project_id may get overwritten by SQL query
     im_security_alert_check_integer -location "im_costs_project_finance_component: project_id" -value $project_id
@@ -1888,7 +1888,7 @@ ad_proc im_cost_update_payments { cost_id } {
     Update the payment amount for a cost item by
     summing up all payments for this item.
 } {
-    set default_currency [ad_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
+    set default_currency [im_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
 
     db_dml update_cost_payment "
 	update im_costs set 
@@ -1956,8 +1956,8 @@ ad_proc -public im_cost_update_project_cost_cache {
     including subprojects of arbitrary depth.
     Returns the "subtotals" array.
 } {
-    set default_currency [ad_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
-    set default_hourly_cost [ad_parameter -package_id [im_package_cost_id] "DefaultTimesheetHourlyCost" "" 30]
+    set default_currency [im_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
+    set default_hourly_cost [im_parameter -package_id [im_package_cost_id] "DefaultTimesheetHourlyCost" "" 30]
     set planning_exists_p [llength [info commands im_planning_item_status_active]]
 
     # Update the logged hours cache
@@ -2237,7 +2237,7 @@ ad_proc -public im_cost_project_document_icons_helper {
     set parent_id [db_string parent_id "select parent_id from im_projects where project_id = :project_id" -default ""]
     if {"" == $parent_id} { return "" }
 
-    set default_currency [ad_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
+    set default_currency [im_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
     set date_format "YYYY-MM-DD"
     set num_format "9999999999.99"
     set view_mode "view"

@@ -48,14 +48,14 @@ if {![exists_and_not_null rep_cost_id]} {
     set page_title "<#_ New Repeating Cost Item#>"
     set context [im_context_bar $page_title]
     set effective_date [db_string get_today "select sysdate from dual"]
-    set payment_days [ad_parameter -package_id [im_package_cost_id] "DefaultProviderBillPaymentDays" "" 60]
+    set payment_days [im_parameter -package_id [im_package_cost_id] "DefaultProviderBillPaymentDays" "" 60]
     set customer_id [im_company_internal]
     set cost_status_id [im_cost_status_created]
     set amount 0
     set vat 0
     set tax 0
 
-    set currency [ad_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
+    set currency [im_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
     set form_mode "edit"
 }
 

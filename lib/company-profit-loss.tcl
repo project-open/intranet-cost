@@ -7,7 +7,7 @@ ad_page_contract {
 
 set current_user_id [ad_maybe_redirect_for_registration]
 im_company_permissions $current_user_id $company_id view read write admin
-set default_currency [ad_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
+set default_currency [im_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
 set max_project_name 40
 
 # ------------------------------------------------------
