@@ -293,7 +293,7 @@ ad_proc -public im_cost_uom_options {
 } {
     Cost UoM (Unit of Measure) options
 } {
-    if {"" == $locale && $translate_p} { set locale [lang::user::locale -user_id [ad_get_user_id]] }
+    if {"" == $locale && $translate_p} { set locale [lang::user::locale -user_id [ad_conn user_id]] }
 
     set options_sql "
         select	category, category_id
@@ -357,7 +357,7 @@ namespace eval im_cost {
 	if {0 == $provider_id} { set provider_id [im_company_internal] }
 	if {0 == $cost_id} { set cost_id [db_nextval acs_object_id_seq]}
 	if {0 == $cost_status_id} { set cost_status_id [im_cost_status_created]}
-	if {0 == $user_id} { set user_id [ad_get_user_id] }
+	if {0 == $user_id} { set user_id [ad_conn user_id] }
 	if {"" == $creation_ip} { set creation_ip [ad_conn peeraddr] }
 
 	set today [db_string today "select sysdate from dual"]
@@ -586,7 +586,7 @@ ad_proc -public im_costs_navbar {
     Default_letter==none marks a special behavious, printing no alpha-bar.
 } {
     # -------- Defaults -----------------------------
-    set user_id [ad_get_user_id]
+    set user_id [ad_conn user_id]
     set url_stub [ns_urldecode [im_url_with_query]]
     ns_log Notice "im_costs_navbar: url_stub=$url_stub"
 
@@ -2165,7 +2165,7 @@ ad_proc -public im_navbar_tree_finance {
     Finance Navbar 
 } {
     set wiki [im_navbar_doc_wiki]
-    set current_user_id [ad_get_user_id]
+    set current_user_id [ad_conn user_id]
 
     set html "
 	<li><a href=\"/intranet-cost/\">[lang::message::lookup "" intranet-cost.Finance "Finance"]</a>
@@ -2215,7 +2215,7 @@ ad_proc -public im_cost_project_document_icons {
     Shows a list of icons for each financial document
     available as part of the project.
 } {
-    set current_user_id [ad_get_user_id]
+    set current_user_id [ad_conn user_id]
     if {![im_permission $current_user_id view_costs]} { return "" }
 
     if {$no_cache_p} {

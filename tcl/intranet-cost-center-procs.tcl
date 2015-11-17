@@ -144,7 +144,7 @@ ad_proc -public im_cost_center_options {
     charge FinDocs to CostCenters
 } {
 
-    set user_id [ad_get_user_id]
+    set user_id [ad_conn user_id]
     set start_center_id [im_cost_center_company]
     set cost_type "Invalid"
     if {"" != $cost_type_id} { set cost_type [db_string ct "select im_category_from_id(:cost_type_id)"] }
@@ -396,7 +396,7 @@ ad_proc -public im_cc_read_p {
     im_security_alert_check_alphanum -location "im_cc_read_p: privilege" -value $privilege
 
     # Deal with exceptions
-    if {0 == $user_id} { set user_id [ad_get_user_id] }
+    if {0 == $user_id} { set user_id [ad_conn user_id] }
     if {0 == $cost_center_id} { set cost_center_id [im_cost_center_company] }
     if {0 != $cost_type_id} {
 	set privilege [util_memoize [list db_string priv "
