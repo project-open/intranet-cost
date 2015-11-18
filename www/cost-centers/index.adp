@@ -9,7 +9,7 @@
 @help_txt;noquote@
 <br><br>
 <form action=cost-center-action method=post>
-      <%= [export_form_vars return_url] %>
+      <%= [export_vars -form {return_url}] %>
       <table width="100%">
       @table_header;noquote@
       @table;noquote@

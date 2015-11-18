@@ -715,7 +715,7 @@ ad_proc im_costs_object_list_component { user_id cost_id return_url } {
 
     return "
       <form action=cost-association-action method=post>
-      [export_form_vars cost_id return_url]
+      [export_vars -form {cost_id return_url}]
       <table border=0 cellspacing=1 cellpadding=1>
         <tr>
           <td align=middle class=rowtitle colspan=2>Related Projects</td>

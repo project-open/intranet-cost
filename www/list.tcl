@@ -273,7 +273,7 @@ if {"" != $parent_menu_label} {
 # options
 set filter_html "
 	<form method=get action=\"/intranet-cost/list\">
-	[export_form_vars start_idx order_by how_many view_name view_mode include_subcosts_p customer_id provider_id company_id project_id letter]
+	[export_vars -form {start_idx order_by how_many view_name view_mode include_subcosts_p customer_id provider_id company_id project_id letter}]
 	<table border=0 cellpadding=1 cellspacing=1>
 	  <tr>
 	    <td>[_ intranet-cost.Document_Status]:</td>
