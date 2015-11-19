@@ -95,7 +95,7 @@ where	start_block >= rc.start_date
 db_foreach all_start_blocks $all_start_blocks_sql {
     set key "$rep_cost_id:$start_block"
     # Fill the field with a link to create a new cost item
-    set blocks($key) "<a href='$cost_create_url?[export_url_vars rep_cost_id start_block return_url]'>([_ intranet-cost.create])</a>"
+    set blocks($key) "<a href='$cost_create_url?[export_vars -url { rep_cost_id start_block return_url}]'>([_ intranet-cost.create])</a>"
     ns_log Notice "/intranet-cos/rep-costs/index: key=$key"
 }
 

@@ -1070,7 +1070,7 @@ ad_proc im_costs_base_component {
     append cost_html "
 		<tr$bgcolor([expr $ctr % 2])>
 		  <td colspan=$colspan>
-		    <a href=\"/intranet-cost/list?[export_url_vars status_id company_id project_id]\">
+		    <a href=\"/intranet-cost/list?[export_vars -url { status_id company_id project_id}]\">
 		      [_ intranet-cost.more_costs]
 		    </a>
 		  </td>

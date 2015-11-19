@@ -156,7 +156,7 @@ append left_navbar_html "
 	<div class='filter-block'>
 		<div class='filter-title'>#intranet-cost.AdminCostCenter#</div>
 		<ul>
-		    <li><a href=new?[export_url_vars return_url]>[lang::message::lookup "" intranet-cost.CreateNewCostCenter "Create new Cost Center"]</a</li>
+		    <li><a href=new?[export_vars -url { return_url}]>[lang::message::lookup "" intranet-cost.CreateNewCostCenter "Create new Cost Center"]</a</li>
 		</ul>
 	</div>
 "
