@@ -49,7 +49,7 @@ foreach project_id [array names project_hash] {
     if {[catch {
 	set est_profit [expr $costs($project_id-3702) - $costs($project_id-3706) - $costs($project_id-3726) - $costs($project_id-3728)]
     } err_msg]} {
-	ns_log ERROR "$err_msg"
+	ns_log Error "$err_msg"
 	set est_profit [lang::message::lookup "" intranet-cost.UnableToCalculateEstimatedProfit "Unable to calculate 'Estimated Profit'"]
     }
 
@@ -57,7 +57,7 @@ foreach project_id [array names project_hash] {
 	set profit [expr $costs($project_id-3700) - $costs($project_id-3704) - $costs($project_id-3718) - $costs($project_id-3722)]
 	set profit_pretty [lc_numeric $profit "%.2f" [lang::user::locale]]
     } err_msg]} {
-        ns_log ERROR "$err_msg"
+        ns_log Error "$err_msg"
         set profit_pretty [lang::message::lookup "" intranet-cost.UnableToCalculateProfit "Unable to calculate 'Profit'"]
     }
 
