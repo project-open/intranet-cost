@@ -14,7 +14,7 @@ ad_page_contract {
     { project_id 0 }
     { company_id 0 }
 }
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 set page_title "[_ intranet-cost.Finance_Home]"
 set context_bar [im_context_bar $page_title]
 set return_url [im_url_with_query]

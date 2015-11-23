@@ -17,7 +17,7 @@ ad_page_contract {
 # Defaults & Security
 # ------------------------------------------------------
 
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 set user_is_admin_p [im_is_user_site_wide_or_intranet_admin $user_id]
 
 if {!$user_is_admin_p} {
@@ -126,7 +126,7 @@ db_foreach cost_centers $main_sql {
     }
 
     append table "
-		<tr$bgcolor([expr $ctr % 2])>
+		<tr$bgcolor([expr {$ctr % 2}])>
 		<td><input type=checkbox name=cost_center_id.$cost_center_id></td>
 		<td><nobr>$sub_indent <a href=$cost_center_url?cost_center_id=$cost_center_id&return_url=$return_url>$cost_center_name</a></nobr></td>
 		<td>$cost_center_code</td>
@@ -139,7 +139,7 @@ db_foreach cost_centers $main_sql {
     "
     if {{} != $employee_list} {
 	append table "
-		<tr$bgcolor([expr $ctr % 2])><td colspan=2 align=right>&nbsp;</td><td colspan=6>
+		<tr$bgcolor([expr {$ctr % 2}])><td colspan=2 align=right>&nbsp;</td><td colspan=6>
 		[join $employee_list ", "]
 		</td></tr>
         "
@@ -156,7 +156,7 @@ append left_navbar_html "
 	<div class='filter-block'>
 		<div class='filter-title'>#intranet-cost.AdminCostCenter#</div>
 		<ul>
-		    <li><a href=new?[export_vars -url { return_url}]>[lang::message::lookup "" intranet-cost.CreateNewCostCenter "Create new Cost Center"]</a</li>
+		    <li><a href=[export_vars -base new { return_url}]>[lang::message::lookup "" intranet-cost.CreateNewCostCenter "Create new Cost Center"]</a</li>
 		</ul>
 	</div>
 "

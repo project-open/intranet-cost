@@ -165,8 +165,8 @@ ad_proc -public im_cost_permissions {user_id cost_id view_var read_var write_var
     set cc_read [im_cost_center_read_p $cost_center_id $cost_type_id $user_id]
     set cc_write [im_cost_center_write_p $cost_center_id $cost_type_id $user_id]
 
-    set can_read [expr [im_permission $user_id view_costs] || [im_permission $user_id view_invoices]]
-    set can_write [expr [im_permission $user_id add_costs] || [im_permission $user_id add_invoices]]
+    set can_read [expr {[im_permission $user_id view_costs] || [im_permission $user_id view_invoices]}]
+    set can_write [expr {[im_permission $user_id add_costs] || [im_permission $user_id add_invoices]}]
 
     # AND-connection with add/view - costs/invoices
     if {!$can_read} { set cc_read 0 }
@@ -211,10 +211,10 @@ ad_proc -public im_cost_permissions {user_id cost_id view_var read_var write_var
 
     # -----------------------------------------------------
     # Set the permission as the OR-conjunction of provider and customer
-    set view [expr $incust_view || $cust_view || $prov_view || $cc_view]
-    set read [expr $incust_read || $cust_read || $prov_read || $cc_read]
-    set write [expr $incust_write || $cust_write || $prov_write || $cc_write]
-    set admin [expr $incust_admin || $cust_admin || $prov_admin || $cc_admin]
+    set view [expr {$incust_view || $cust_view || $prov_view || $cc_view}]
+    set read [expr {$incust_read || $cust_read || $prov_read || $cc_read}]
+    set write [expr {$incust_write || $cust_write || $prov_write || $cc_write}]
+    set admin [expr {$incust_admin || $cust_admin || $prov_admin || $cc_admin}]
 
     # Limit rights of all users to view & read if they dont
     # have the expressive permission to "add_costs or add_invoices".
@@ -235,7 +235,7 @@ ad_proc -public im_cost_type_write_p {
     Returns "1" if the user can create costs of type cost_type_id or 0 otherwise
 } {
     set create_cost_types [im_cost_type_write_permissions $user_id]
-    return [expr [lsearch -exact $create_cost_types $cost_type_id] != -1]
+    return [expr {$cost_type_id in $create_cost_types}]
 }
 
 
@@ -256,7 +256,7 @@ ad_proc -public im_cost_type_write_permissions_helper {
     write permissions for atleast one Cost Center.
 } {
     # Financial Write permissions are required
-    set can_write [expr [im_permission $user_id add_costs] || [im_permission $user_id add_invoices]]
+    set can_write [expr {[im_permission $user_id add_costs] || [im_permission $user_id add_invoices]}]
     if {!$can_write} { return [list] }
 
     set result [db_list writable_cost_centers "
@@ -361,7 +361,7 @@ namespace eval im_cost {
 	if {"" == $creation_ip} { set creation_ip [ad_conn peeraddr] }
 
 	set today [db_string today "select sysdate from dual"]
-	if [catch {
+	if {[catch {
 	    db_dml insert_costs "
 		insert into acs_objects	(
 			object_id, object_type, context_id,
@@ -370,7 +370,7 @@ namespace eval im_cost {
 			:cost_id, :object_type, null,
 			:today, :user_id, :creation_ip
 	    )" 
-	} errmsg] {
+	} errmsg]} {
 	    ad_return_complaint 1 "<li>Error creating acs_object in im_cost::new<br>
 		cost_id=$cost_id<br>
 		cost_status_id=$cost_status_id<br>
@@ -382,7 +382,7 @@ namespace eval im_cost {
 	    return
 	}
 
-	if [catch {
+	if {[catch {
 	    db_dml insert_costs "
 	insert into im_costs (
 		cost_id,
@@ -400,7 +400,7 @@ namespace eval im_cost {
 		:provider_id,
 		:cost_type_id,
 		:cost_status_id
-	)" } errmsg] {
+	)" } errmsg]} {
 	    ad_return_complaint 1 "<li>Error inserting into im_costs as part of im_cost::new<br>
                cost_id=$cost_id<br>
                 cost_status_id=$cost_status_id<br>
@@ -550,7 +550,7 @@ ad_proc -public template::widget::im_currencies { element_reference tag_attribut
 
 	set include_empty_pos [lsearch $params include_empty_p]
 	if { $include_empty_pos >= 0 } {
-	    set include_empty_p [lindex $params [expr $include_empty_pos + 1]]
+	    set include_empty_p [lindex $params $include_empty_pos+1]
 	}
     }
 
@@ -695,7 +695,7 @@ ad_proc im_costs_object_list_component { user_id cost_id return_url } {
     set object_list_html ""
     db_foreach object_list $object_list_sql {
 	append object_list_html "
-        <tr $bgcolor([expr $ctr % 2])>
+        <tr $bgcolor([expr {$ctr % 2}])>
           <td>
             <A href=\"$url$object_id\">$object_name</A>
           </td>
@@ -708,7 +708,7 @@ ad_proc im_costs_object_list_component { user_id cost_id return_url } {
 
     if {0 == $ctr} {
 	append object_list_html "
-        <tr $bgcolor([expr $ctr % 2])>
+        <tr $bgcolor([expr {$ctr % 2}])>
           <td><i>No objects found</i></td>
         </tr>\n"
     }
@@ -839,7 +839,7 @@ ad_proc im_company_payment_balance_component { company_id } {
     db_multirow -extend {invoice_url} list_costs_multirow costs_sql $costs_sql {
 	set invoice_url [export_vars -base "/intranet-invoices/view" {{invoice_id $cost_id}}]
 	if {"" == $total_converted} { set total_converted 0 }
-	set costs_sum [expr $costs_sum + $total_converted]
+	set costs_sum [expr {$costs_sum + $total_converted}]
     }
     
     eval [template::adp_compile -string "<listtemplate name=list_costs></listtemplate>"]
@@ -891,7 +891,7 @@ ad_proc im_company_payment_balance_component { company_id } {
     set payments_sum 0
     db_multirow -extend {invoice_url} list_payments_multirow payments_sql $payments_sql {
 	set payment_url [export_vars -base "/intranet-payments/view" {payment_id}]
-	set payments_sum [expr $payments_sum + $amount_converted]
+	set payments_sum [expr {$payments_sum + $amount_converted}]
     }
     
     eval [template::adp_compile -string "<listtemplate name=list_payments></listtemplate>"]
@@ -1051,7 +1051,7 @@ ad_proc im_costs_base_component {
     db_foreach recent_costs $costs_sql {
 
 	append cost_html "
-		<tr$bgcolor([expr $ctr % 2])>
+		<tr$bgcolor([expr {$ctr % 2}])>
 		  <td><a href=\"$url$cost_id\">[string range $cost_name 0 20]</a></td>
 		  <td>$cost_type</td>
 		  <td>$calculated_due_date</td>
@@ -1068,9 +1068,9 @@ ad_proc im_costs_base_component {
     set company_id $org_company_id
 
     append cost_html "
-		<tr$bgcolor([expr $ctr % 2])>
+		<tr$bgcolor([expr {$ctr % 2}])>
 		  <td colspan=$colspan>
-		    <a href=\"/intranet-cost/list?[export_vars -url { status_id company_id project_id}]\">
+		    <a href=\"/intranet-cost/[export_vars -base list { status_id company_id project_id}]\">
 		      [_ intranet-cost.more_costs]
 		    </a>
 		  </td>
@@ -1080,7 +1080,7 @@ ad_proc im_costs_base_component {
     # Add a reasonable message if there are no documents
     if {$ctr == 1} {
 	append cost_html "
-		<tr$bgcolor([expr $ctr % 2])>
+		<tr$bgcolor([expr {$ctr % 2}])>
 		  <td colspan=$colspan align=center>
 		    <I>[_ intranet-cost.lt_No_financial_document]</I>
 		  </td>
@@ -1386,7 +1386,7 @@ ad_proc im_costs_project_finance_component {
 		if {!$atleast_one_unreadable_p} {
 		    append cost_html "
 			<tr class=rowplain>
-			  <td colspan=[expr $colspan-4]>&nbsp;</td>
+			  <td colspan=[expr {$colspan-4}]>&nbsp;</td>
 			  <td align='right' colspan=2>
 			    <b><nobr>$subtotals($old_cost_type_id) $default_currency</nobr></b>
 			  </td>
@@ -1434,7 +1434,7 @@ ad_proc im_costs_project_finance_component {
 	set cost_url_end "</A>"
 
 	set amount_unconverted "<nobr>([string trim $amount] $currency)</nobr>"
-	if {[string equal $currency $default_currency]} { set amount_unconverted "" }
+	if {$currency eq $default_currency} { set amount_unconverted "" }
 
 	set amount_paid "$payment_amount $default_currency"
 	if {"" == $payment_amount} { set amount_paid "" }
@@ -1450,7 +1450,7 @@ ad_proc im_costs_project_finance_component {
 	}
 
 	append cost_html "
-	<tr $bgcolor([expr $ctr % 2])>
+	<tr $bgcolor([expr {$ctr % 2}])>
 	  <td><nobr>$cost_url[string range $cost_name 0 30]</A></nobr></td>
 	  <td>$cost_center_code</td>
 	  <td>$company_name</td>
@@ -1467,7 +1467,7 @@ ad_proc im_costs_project_finance_component {
 	if {!$atleast_one_unreadable_p} {
 	    append cost_html "
 		<tr class=rowplain>
-		  <td colspan=[expr $colspan-3]>&nbsp;</td>
+		  <td colspan=[expr {$colspan-3}]>&nbsp;</td>
 		  <td colspan='99'>
 		    <b>$subtotals($old_cost_type_id) $default_currency</b>
 		  </td>
@@ -1483,7 +1483,7 @@ ad_proc im_costs_project_finance_component {
     # Add a reasonable message if there are no documents
     if {$ctr == 1} {
 	append cost_html "
-	<tr$bgcolor([expr $ctr % 2])>
+	<tr$bgcolor([expr {$ctr % 2}])>
 	  <td colspan=$colspan align=center>
 	    <I>[_ intranet-cost.lt_No_financial_document]</I>
 	  </td>
@@ -1514,19 +1514,19 @@ ad_proc im_costs_project_finance_component {
     append hard_cost_html "</tr>\n<tr>\n<td>[_ intranet-cost.Provider_Bills]</td>\n"
     set subtotal $subtotals([im_cost_type_bill])
     append hard_cost_html "<td align=right>- $subtotal $default_currency</td>\n"
-    set grand_total [expr $grand_total - $subtotal]
+    set grand_total [expr {$grand_total - $subtotal}]
 
     append hard_cost_html "</tr>\n<tr>\n<td>[_ intranet-cost.Timesheet_Costs]</td>\n"
     set subtotal $subtotals([im_cost_type_timesheet])
     append hard_cost_html "<td align=right>- $subtotal $default_currency</td>\n"
-    set grand_total [expr $grand_total - $subtotal]
+    set grand_total [expr {$grand_total - $subtotal}]
 
     append hard_cost_html "</tr>\n<tr>\n<td>[lang::message::lookup "" intranet-cost.Expenses "Expenses"]</td>\n"
     set subtotal $subtotals([im_cost_type_expense_bundle])
     append hard_cost_html "<td align=right>- $subtotal $default_currency</td>\n"
-    set grand_total [expr $grand_total - $subtotal]
+    set grand_total [expr {$grand_total - $subtotal}]
 
-    set grand_total [expr round($rounding_factor * $grand_total) / $rounding_factor]
+    set grand_total [expr {round($rounding_factor * $grand_total) / $rounding_factor}]
     append hard_cost_html "</tr>\n<tr>\n<td><b>[_ intranet-cost.Grand_Total]</b></td>\n"
     append hard_cost_html "<td align=right><b>$grand_total $default_currency</b></td>\n"
 
@@ -1553,19 +1553,19 @@ ad_proc im_costs_project_finance_component {
     append prelim_cost_html "</tr>\n<tr>\n<td>[_ intranet-cost.Purchase_Orders]</td>\n"
     set subtotal $subtotals([im_cost_type_po])
     append prelim_cost_html "<td align=right>- $subtotal $default_currency</td>\n"
-    set grand_total [expr $grand_total - $subtotal]
+    set grand_total [expr {$grand_total - $subtotal}]
 
     append prelim_cost_html "</tr>\n<tr>\n<td>[lang::message::lookup "" intranet-cost.Timesheet_Budget "Timesheet Budget"]</td>\n"
     set subtotal $subtotals([im_cost_type_timesheet_budget])
     append prelim_cost_html "<td align=right>- $subtotal $default_currency</td>\n"
-    set grand_total [expr $grand_total - $subtotal]
+    set grand_total [expr {$grand_total - $subtotal}]
 
     append prelim_cost_html "</tr>\n<tr>\n<td>[lang::message::lookup "" intranet-cost.Expense_Budget "Expense Budget"]</td>\n"
     set subtotal $subtotals([im_cost_type_expense_planned])
     append prelim_cost_html "<td align=right>- $subtotal $default_currency</td>\n"
-    set grand_total [expr $grand_total - $subtotal]
+    set grand_total [expr {$grand_total - $subtotal}]
 
-    set grand_total [expr round($rounding_factor * $grand_total) / $rounding_factor]
+    set grand_total [expr {round($rounding_factor * $grand_total) / $rounding_factor}]
     append prelim_cost_html "</tr>\n<tr>\n<td><b>[lang::message::lookup "" intranet-cost.Preliminary_Total "Preliminary Total"]</b></td>\n"
     append prelim_cost_html "<td align=right><b>$grand_total $default_currency</b></td>\n"
     append prelim_cost_html "</tr>\n</table>\n"
@@ -1644,19 +1644,19 @@ ad_proc im_costs_project_finance_component {
 	# set html_provider_links [im_menu_ul_list -package_key intranet-invoices "invoices_providers" $bind_vars]
 	set html_provider_links [im_menu_ul_list "invoices_providers" $bind_vars]
 
-	if { ![empty_string_p $html_customer_links] || ![empty_string_p $html_provider_links] } {
+	if { $html_customer_links ne "" || $html_provider_links ne "" } {
 		set admin_html "
 		<h1>[_ intranet-core.Admin_Links]</h1>
 		<table>
 		<tr class=rowplain>
 		<td>\n"
-		if { ![empty_string_p $html_customer_links] } {
+		if { $html_customer_links ne "" } {
 			append admin_html "<h2>"
 		    	append admin_html [lang::message::lookup "" intranet-cost.Customer_Links "Customer Actions"]
 		    	append admin_html "</h2>"	
 	      	    	append admin_html $html_customer_links
 		}
-                if { ![empty_string_p $html_provider_links] } {
+                if { $html_provider_links ne "" } {
 			append admin_html "<br><h2>"			
 			append admin_html [lang::message::lookup "" intranet-cost.Provider_Links "Provider Actions"]
 			append admin_html "</h2>"	
@@ -1798,7 +1798,7 @@ ad_proc -public im_cost_status_select {
     set options [util_memoize [list im_cost_status_options $include_empty]]
 
     set result "\n<select name=\"$select_name\">\n"
-    if {[string equal $default ""]} {
+    if {$default eq ""} {
 	append result "<option value=\"\"> -- Please select -- </option>"
     }
 
@@ -1811,10 +1811,10 @@ ad_proc -public im_cost_status_select {
 	}
 	
 	set selected ""
-	if { [string equal $default [lindex $option 1]]} {
+	if {$default eq [lindex $option 1]} {
 	    set selected " selected"
 	}
-	append result "\t<option value=\"[util_quote_double_quotes [lindex $option 1]]\" $selected>"
+	append result "\t<option value=\"[ad_quotehtml [lindex $option 1]]\" $selected>"
 	append result "$text</option>\n"
 
     }
@@ -1868,12 +1868,12 @@ ad_proc im_costs_select {
 		1=1
     "
 
-    if { ![empty_string_p $status] } {
+    if { $status ne "" } {
 	ns_set put $bind_vars status $status
 	append sql " and cost_status_id=(select cost_status_id from im_cost_status where cost_status=:status)"
     }
 
-    if { ![empty_string_p $exclude_status] } {
+    if { $exclude_status ne "" } {
 	set exclude_string [im_append_list_to_ns_set $bind_vars cost_status_type $exclude_status]
 	append sql " and cost_status_id in (select cost_status_id 
 						from im_cost_status 
@@ -2083,7 +2083,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 	"
 	set ts_budget [db_string ts_budget $planning_ts_hours_sql -default 0.0]
 	if {"" == $ts_budget} { set ts_budget 0.0 }
-	set ts_budget [expr $ts_budget]
+	set ts_budget [expr {$ts_budget}]
 	set subtotals(3726) $ts_budget
 
     } else {
@@ -2100,7 +2100,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 	    # Create a fake timesheet planning entry based on im_project.budget_hours field
 	    set budget_hours [db_string budget_hours "select project_budget_hours from im_projects where project_id = :project_id" -default ""]
 	    if {"" == $budget_hours} { set budget_hours 0 }
-	    set cost_timesheet_planned [expr $budget_hours * $default_hourly_cost]
+	    set cost_timesheet_planned [expr {$budget_hours * $default_hourly_cost}]
 	    set subtotals([im_cost_type_timesheet_planned]) $cost_timesheet_planned
 	}
 	

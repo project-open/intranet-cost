@@ -5,7 +5,7 @@ ad_page_contract {
     @date 2012-03-30
 }
 
-set current_user_id [ad_maybe_redirect_for_registration]
+set current_user_id [auth::require_login]
 im_company_permissions $current_user_id $company_id view read write admin
 set default_currency [im_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
 set max_project_name 40
@@ -47,14 +47,14 @@ foreach project_id [array names project_hash] {
 	if {![info exists costs($key)]} { set costs($key) 0 }
     }
     if {[catch {
-	set est_profit [expr $costs($project_id-3702) - $costs($project_id-3706) - $costs($project_id-3726) - $costs($project_id-3728)]
+	set est_profit [expr {$costs($project_id-3702) - $costs($project_id-3706) - $costs($project_id-3726) - $costs($project_id-3728)}]
     } err_msg]} {
 	ns_log Error "$err_msg"
 	set est_profit [lang::message::lookup "" intranet-cost.UnableToCalculateEstimatedProfit "Unable to calculate 'Estimated Profit'"]
     }
 
     if {[catch {
-	set profit [expr $costs($project_id-3700) - $costs($project_id-3704) - $costs($project_id-3718) - $costs($project_id-3722)]
+	set profit [expr {$costs($project_id-3700) - $costs($project_id-3704) - $costs($project_id-3718) - $costs($project_id-3722)}]
 	set profit_pretty [lc_numeric $profit "%.2f" [lang::user::locale]]
     } err_msg]} {
         ns_log Error "$err_msg"

@@ -63,7 +63,7 @@ ad_page_contract {
 # ---------------------------------------------------------------
 
 # User id already verified by filters
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 set page_title "[_ intranet-cost.Cost_Items]"
 set context_bar [im_context_bar $page_title]
 set page_focus "im_header_form.keywords"
@@ -79,10 +79,10 @@ if {![im_permission $user_id view_costs]} {
     return
 }
 
-if { [empty_string_p $how_many] || $how_many < 1 } {
+if { $how_many eq "" || $how_many < 1 } {
     set how_many [im_parameter -package_id [im_package_core_id] NumberResultsPerPage "" 50]
 }
-set end_idx [expr $start_idx + $how_many - 1]
+set end_idx [expr {$start_idx + $how_many - 1}]
 
 if {0 != $project_id && "" != $project_id} {
     set company_id [db_string company_from_project "select company_id from im_projects where project_id = :project_id" -default 0]
@@ -130,10 +130,10 @@ db_foreach column_list_sql $column_sql {
 # ---------------------------------------------------------------
 
 set criteria [list]
-if { ![empty_string_p $cost_status_id] && $cost_status_id > 0 } {
+if { $cost_status_id ne "" && $cost_status_id > 0 } {
     lappend criteria "c.cost_status_id in ([join [im_sub_categories $cost_status_id] ","])"
 }
-if { ![empty_string_p $cost_type_id] && $cost_type_id != 0 } {
+if { $cost_type_id ne "" && $cost_type_id != 0 } {
     lappend criteria "c.cost_type_id in ([join [im_sub_categories $cost_type_id] ","])"
 }
 if {$customer_id} {
@@ -174,7 +174,7 @@ if {"" != $project_id && 0 != $project_id} {
 
 
 
-if { ![empty_string_p $letter] && [string compare $letter "ALL"] != 0 && [string compare $letter "SCROLL"] != 0 } {
+if { $letter ne "" && $letter ne "ALL"  && $letter ne "SCROLL"  } {
     lappend criteria "im_first_letter_default_to_a(cust.company_name)=:letter"
 }
 
@@ -217,7 +217,7 @@ switch $order_by {
 }
 
 set where_clause [join $criteria " and\n	    "]
-if { ![empty_string_p $where_clause] } {
+if { $where_clause ne "" } {
     set where_clause " and $where_clause"
 }
 
@@ -314,7 +314,7 @@ set filter_html "
 # ---------------------------------------------------------------
 
 # Set up colspan to be the number of headers + 1 for the # column
-set colspan [expr [llength $column_headers] + 1]
+set colspan [expr {[llength $column_headers] + 1}]
 
 set table_header_html ""
 #<tr>
@@ -328,13 +328,13 @@ set table_header_html ""
 #
 set url "$local_url?"
 set query_string [export_ns_set_vars url [list order_by]]
-if { ![empty_string_p $query_string] } {
+if { $query_string ne "" } {
     append url "$query_string&"
 }
 
 append table_header_html "<tr>\n"
 foreach col $column_headers {
-    if { [string compare $order_by $col] == 0 } {
+    if { $order_by eq $col  } {
 	append table_header_html "  <td class=rowtitle>$col</td>\n"
     } else {
 	append table_header_html "  <td class=rowtitle><a href=\"${url}order_by=[ns_urlencode $col]\">$col</a></td>\n"
@@ -354,7 +354,7 @@ set ctr 0
 set idx $start_idx
 db_foreach costs_info_query {} {
     set url [im_maybe_prepend_http $url]
-    if { [empty_string_p $url] } {
+    if { $url eq "" } {
 	set url_string "&nbsp;"
     } else {
 	set url_string "<a href=\"$url\">$url</a>"
@@ -364,7 +364,7 @@ db_foreach costs_info_query {} {
     if {"" == $amount} { set currency "" }
 
     # Append together a line of data based on the "column_vars" parameter list
-    append table_body_html "<tr$bgcolor([expr $ctr % 2])>\n"
+    append table_body_html "<tr$bgcolor([expr {$ctr % 2}])>\n"
     foreach column_var $column_vars {
 	append table_body_html "\t<td valign=top>"
 	set cmd "append table_body_html $column_var"
@@ -381,7 +381,7 @@ db_foreach costs_info_query {} {
 }
 
 # Show a reasonable message when there are no result rows:
-if { [empty_string_p $table_body_html] } {
+if { $table_body_html eq "" } {
     set table_body_html "
 	<tr><td colspan=$colspan><ul><li><b> 
 	[_ intranet-cost.lt_There_are_currently_n]
@@ -391,7 +391,7 @@ if { [empty_string_p $table_body_html] } {
 if { $ctr == $how_many && $end_idx < $total_in_limited } {
     # This means that there are rows that we decided not to return
     # Include a link to go to the next page
-    set next_start_idx [expr $end_idx + 1]
+    set next_start_idx [expr {$end_idx + 1}]
     set next_page_url "$local_url?start_idx=$next_start_idx&[export_ns_set_vars url [list start_idx]]"
 } else {
     set next_page_url ""
@@ -400,7 +400,7 @@ if { $ctr == $how_many && $end_idx < $total_in_limited } {
 if { $start_idx > 0 } {
     # This means we didn't start with the first row - there is
     # at least 1 previous row. add a previous page link
-    set previous_start_idx [expr $start_idx - $how_many]
+    set previous_start_idx [expr {$start_idx - $how_many}]
     if { $previous_start_idx < 0 } { set previous_start_idx 0 }
     set previous_page_url "$local_url?start_idx=$previous_start_idx&[export_ns_set_vars url [list start_idx]]"
 } else {
@@ -415,7 +415,7 @@ if { $start_idx > 0 } {
 # => include a link to go to the next page 
 #
 if {$ctr==$how_many && $total_in_limited > 0 && $end_idx < $total_in_limited} {
-    set next_start_idx [expr $end_idx + 1]
+    set next_start_idx [expr {$end_idx + 1}]
     set next_page "<a href=$local_url?start_idx=$next_start_idx&[export_ns_set_vars url [list start_idx]]>[_ intranet-cost.Next_Page]</a>"
 } else {
     set next_page ""
@@ -426,7 +426,7 @@ if {$ctr==$how_many && $total_in_limited > 0 && $end_idx < $total_in_limited} {
 # => add a previous page link
 #
 if { $start_idx > 0 } {
-    set previous_start_idx [expr $start_idx - $how_many]
+    set previous_start_idx [expr {$start_idx - $how_many}]
     if { $previous_start_idx < 0 } { set previous_start_idx 0 }
     set previous_page "<a href=$local_url?start_idx=$previous_start_idx&[export_ns_set_vars url [list start_idx]]>[_ intranet-cost.Previous_Page]</a>"
 } else {
@@ -442,7 +442,7 @@ set table_continuation_html "
 
 set button_html "
 <tr>
-  <td colspan=[expr $colspan - 3]></td>
+  <td colspan=[expr {$colspan - 3}]></td>
   <td align=center>
     <input type=submit name=submit_save value='[_ intranet-cost.Save]'>
   </td>

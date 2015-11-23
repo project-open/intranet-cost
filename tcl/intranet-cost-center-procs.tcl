@@ -54,13 +54,13 @@ ad_proc -public im_cost_center_permissions {user_id cost_center_id view_var read
 
     set user_is_admin_p [im_is_user_site_wide_or_intranet_admin $user_id]
     set cc_admin_id [util_memoize [list db_string cc_admin "select manager_id from im_cost_centers where cost_center_id = $cost_center_id" -default ""]]
-    set user_is_cc_admin_p [expr $user_id == $cc_admin_id]
+    set user_is_cc_admin_p [expr {$user_id == $cc_admin_id}]
 
     # -----------------------------------------------------
     # Set the permission as the OR-conjunction of provider and customer
     set view 1
     set read 1
-    set write [expr $user_is_admin_p || $user_is_cc_admin_p]
+    set write [expr {$user_is_admin_p || $user_is_cc_admin_p}]
     set admin $write
 }
 
@@ -250,15 +250,15 @@ ad_proc -public template::widget::im_cost_center_tree {
 
 	set include_empty_pos [lsearch $params include_empty_p]
 	if { $include_empty_pos >= 0 } {
-	    set include_empty_p [lindex $params [expr $include_empty_pos + 1]]
+	    set include_empty_p [lindex $params $include_empty_pos+1]
 	}
 	set department_only_p_pos [lsearch $params department_only_p]
 	if { $department_only_p_pos >= 0 } {
-	    set department_only_p [lindex $params [expr $department_only_p_pos + 1]]
+	    set department_only_p [lindex $params $department_only_p_pos+1]
 	}
 	set translate_p_pos [lsearch $params translate_p]
 	if { $translate_p_pos >= 0 } {
-	    set translate_p [lindex $params [expr $translate_p_pos + 1]]
+	    set translate_p [lindex $params $translate_p_pos+1]
 	}
     }
 

@@ -20,7 +20,7 @@ ad_page_contract {
 # Default & Security
 # ------------------------------------------------------------------
 
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 set page_title [lang::message::lookup "" intranet-cost.Create_Repeating_Cost_Item "Create Repeating Cost Item"]
 set context [im_context_bar $page_title]
 set today [db_string birthday_today "select to_char(sysdate,'YYYY-MM-DD') from dual"]
@@ -72,9 +72,9 @@ append cost_name " - $start_block"
 set cost_id [im_new_object_id]
 set cause_object_id $rep_cost_id
 set effective_date $start_block
-if {![exists_and_not_null payment_days]} { set payment_days 0 }
-if {![exists_and_not_null tax]} { set tax 0 }
-if {![exists_and_not_null vat]} { set vat 0 }
+if {(![info exists payment_days] || $payment_days eq "")} { set payment_days 0 }
+if {(![info exists tax] || $tax eq "")} { set tax 0 }
+if {(![info exists vat] || $vat eq "")} { set vat 0 }
 
 set project_options [im_project_options]
 set customer_options [im_company_options -include_empty_p 0 -status "Active" -type "CustOrIntl"]

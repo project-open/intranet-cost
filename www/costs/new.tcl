@@ -24,7 +24,7 @@ ad_page_contract {
 # Default & Security
 # ------------------------------------------------------------------
 
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 set page_title "[_ intranet-cost.Edit_Cost]"
 set context [im_context_bar $page_title]
 
@@ -34,7 +34,7 @@ set context [im_context_bar $page_title]
 # Redirect to sub-type
 # ------------------------------------------------------------------
 
-if {[info exists cost_id] && $cost_id != "" && $cost_id != 0 && $form_mode == "display"} {
+if {[info exists cost_id] && $cost_id ne "" && $cost_id != 0 && $form_mode eq "display"} {
     set subtype_sql "
 	select	bou.*
 	from	acs_objects o,
@@ -80,7 +80,7 @@ set admin_html ""
 # Get everything about the cost
 # ------------------------------------------------------------------
 
-if {![exists_and_not_null cost_id]} {
+if {(![info exists cost_id] || $cost_id eq "")} {
     # New variable: setup some reasonable defaults
 
     set page_title "[_ intranet-cost.New_Cost_Item]"

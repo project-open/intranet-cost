@@ -24,7 +24,7 @@ ad_page_contract {
 # Default & Security
 # ------------------------------------------------------------------
 
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 set page_title "<#_ Edit Repeating Cost#>"
 set context [im_context_bar $page_title]
 set today [db_string birthday_today "select sysdate from dual"]
@@ -42,7 +42,7 @@ set focus "cost.var_name"
 # Get everything about the cost
 # ------------------------------------------------------------------
 
-if {![exists_and_not_null rep_cost_id]} {
+if {(![info exists rep_cost_id] || $rep_cost_id eq "")} {
     # New variable: setup some reasonable defaults
 
     set page_title "<#_ New Repeating Cost Item#>"

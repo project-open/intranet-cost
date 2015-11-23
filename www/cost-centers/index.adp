@@ -1,8 +1,8 @@
 <master src="/packages/intranet-core/www/admin/master">
-<property name="title">@page_title;noquote@</property>
+<property name="doc(title)">@page_title;literal@</property>
 <property name="main_navbar_label">admin</property>
 <property name="admin_navbar_label">admin_cost_centers</property>
-<property name="left_navbar">@left_navbar_html;noquote@</property>
+<property name="left_navbar">@left_navbar_html;literal@</property>
 
 <h1>@page_title@</h1>
 

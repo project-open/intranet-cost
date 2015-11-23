@@ -22,7 +22,7 @@ ad_page_contract {
     {submit_save ""}
 }
 
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 
 if {![im_permission $user_id add_costs]} {
     ad_return_complaint 1 "<li>You have insufficient privileges to see this page"
@@ -56,9 +56,9 @@ if {"" != $submit_del} {
 	set otype $object_type($cost_id)
 	# ToDo: Security
 	
-	if [catch {
+	if {[catch {
 	    im_exec_dml del_cost_item "${otype}__delete(:cost_id)"
-	} errmsg] {
+	} errmsg]} {
 	    ad_return_complaint 1 "<li>Error deleting cost item #$cost_id of type '$otype':<br>
             <pre>$errmsg</pre>"
 	    return

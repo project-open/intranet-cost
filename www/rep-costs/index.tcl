@@ -26,7 +26,7 @@ ad_page_contract {
 # Defaults & Security
 # ---------------------------------------------------------------
 
-set user_id [ad_maybe_redirect_for_registration]
+set user_id [auth::require_login]
 set subsite_id [ad_conn subsite_id]
 set bgcolor(0) " class=roweven "
 set bgcolor(1) " class=rowodd "
@@ -95,7 +95,7 @@ where	start_block >= rc.start_date
 db_foreach all_start_blocks $all_start_blocks_sql {
     set key "$rep_cost_id:$start_block"
     # Fill the field with a link to create a new cost item
-    set blocks($key) "<a href='$cost_create_url?[export_vars -url { rep_cost_id start_block return_url}]'>([_ intranet-cost.create])</a>"
+    set blocks($key) "<a href='[export_vars -base $cost_create_url { rep_cost_id start_block return_url}]'>([_ intranet-cost.create])</a>"
     ns_log Notice "/intranet-cos/rep-costs/index: key=$key"
 }
 
@@ -145,7 +145,7 @@ foreach cost_tuple $repeating_cost_ids {
     set cost_id [lindex $cost_tuple 0]
     set cost_name [lindex $cost_tuple 1]
 
-    append table_body_html "<tr $bgcolor([expr $ctr % 2])>\n"
+    append table_body_html "<tr $bgcolor([expr {$ctr % 2}])>\n"
     append table_body_html "<td><a href=new?rep_cost_id=$rep_cost_id&form_mode=display>$cost_name</a></td>\n"
 
     for {set month 1} {$month <= $report_months} {incr month} {
