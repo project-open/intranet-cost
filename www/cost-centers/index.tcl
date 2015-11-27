@@ -101,9 +101,7 @@ set main_sql "
 		im_name_from_id(m.cost_center_status_id) as cost_center_status,
 		length(cost_center_code) / 2 as indent_level,
 		im_name_from_user_id(m.manager_id) as manager_name,
-		acs_object__name(o.context_id) as context,
-		o.tree_sortkey,
-		tree_level(o.tree_sortkey) as tree_level
+		acs_object__name(o.context_id) as context
 	from	acs_objects o,
 		im_cost_centers m
 	where	o.object_id = m.cost_center_id
@@ -118,7 +116,7 @@ db_foreach cost_centers $main_sql {
     incr ctr
     set object_id $cost_center_id
     set sub_indent ""
-    for {set i 1} {$i < $tree_level} {incr i} { append sub_indent $space }
+    for {set i 1} {$i < $indent_level} {incr i} { append sub_indent $space }
 
     set employee_list []
     if {[info exists employee_hash($cost_center_id)]} {
