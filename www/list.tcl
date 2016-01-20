@@ -461,7 +461,7 @@ set sub_navbar [im_costs_navbar "none" "/intranet-cost/list" $next_page_url $pre
 set left_navbar_html "
       <div class='filter-block'>
          <div class='filter-title'>
-	    #intranet-cost.Filter_Documents#
+	    [_ intranet-cost.Filter_Documents]
          </div>
 	 $filter_html
       </div>
@@ -471,7 +471,7 @@ if {"" != $new_document_menu} {
     append left_navbar_html "
          <div class='filter-block'>
             <div class='filter-title'>
-               #intranet-cost.lt_Cost_Item_Administrat#
+               [_ intranet-cost.lt_Cost_Item_Administrat]
             </div>
             <ul>
                $new_document_menu

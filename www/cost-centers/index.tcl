@@ -152,7 +152,7 @@ append table "
 
 append left_navbar_html "
 	<div class='filter-block'>
-		<div class='filter-title'>#intranet-cost.AdminCostCenter#</div>
+		<div class='filter-title'>[_ intranet-cost.AdminCostCenter]</div>
 		<ul>
 		    <li><a href=[export_vars -base new { return_url}]>[lang::message::lookup "" intranet-cost.CreateNewCostCenter "Create new Cost Center"]</a</li>
 		</ul>
