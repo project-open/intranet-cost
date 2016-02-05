@@ -30,7 +30,6 @@ if {"" == $company_id} { set company_id 0}
 # select the "Finance" Menu
 set parent_menu_sql "select menu_id from im_menus where label='finance'"
 set parent_menu_id [util_memoize [list db_string parent_admin_menu $parent_menu_sql -default 0]]
-
 set menu_select_sql "
         select  m.*
         from    im_menus m
