@@ -917,7 +917,7 @@ ad_proc im_costs_company_component { user_id company_id } {
     Returns a HTML table containing a list of costs for a particular
     company.
 } {
-    set html [im_costs_base_component $user_id $company_id ""]
+    set html [im_costs_base_component -exclude_cost_type_id [list [im_cost_type_timesheet]] $user_id $company_id ""]
     return $html
 }
 
@@ -930,6 +930,7 @@ ad_proc im_costs_project_component { user_id project_id } {
 
 
 ad_proc im_costs_base_component { 
+    {-exclude_cost_type_id ""}
     user_id 
     {company_id ""} 
     {project_id ""} 
@@ -959,6 +960,13 @@ ad_proc im_costs_base_component {
     set extra_select [list]
     set object_name ""
     set new_doc_args ""
+
+    if {"" != $exclude_cost_type_id} { 
+	lappend extra_where "ci.cost_type_id not in ([join $exclude_cost_type_id ","])"
+	set object_name [db_string object_name "select company_name from im_companies where company_id = :company_id"]
+	set new_doc_args "?company_id=$company_id"
+    }
+
     if {"" != $company_id} { 
 	lappend extra_where "(ci.customer_id = :company_id OR ci.provider_id = :company_id)" 
 	set object_name [db_string object_name "select company_name from im_companies where company_id = :company_id"]
