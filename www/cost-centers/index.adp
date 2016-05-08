@@ -1,5 +1,5 @@
 <master src="/packages/intranet-core/www/admin/master">
-<property name="doc(title)">@page_title;literal@</property>
+<property name="page_title">@page_title;literal@</property>
 <property name="main_navbar_label">admin</property>
 <property name="admin_navbar_label">admin_cost_centers</property>
 <property name="left_navbar">@left_navbar_html;literal@</property>
@@ -15,4 +15,5 @@
       @table;noquote@
       </table>
 </form>
+
 
