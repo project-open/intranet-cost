@@ -2146,7 +2146,7 @@ ad_proc -public im_cost_update_project_cost_cache {
     "
 
     # Audit the action
-    # im_project_audit -project_id $project_id -action after_update
+    # im_audit -object_id $project_id -action after_update
 
     if {$debug_p} {
 	set debug_html ""
