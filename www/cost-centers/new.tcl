@@ -103,7 +103,14 @@ ad_form -extend -name cost_center -on_request {
 
 } -new_data {
 
-    set cost_center_id [db_string cost_center_insert {}]
+    if {[catch {
+	set cost_center_id [db_string cost_center_insert {}]
+    } err_msg]} {
+	global errorInfo
+	ns_log Error $errorInfo
+	ad_return_complaint 1  "<strong>[lang::message::lookup "" intranet-cost.ErrorCreatingCC "Error creating Cost Center. Please see sql error message for more details:"]</strong> <br/><br/> $errorInfo"
+	ad_script_abort
+    }
     
     # 2014-02-20 fraber: Generates a strange error.
     # Why was this necessary in the first place?
@@ -119,20 +126,27 @@ ad_form -extend -name cost_center -on_request {
 
 } -edit_data {
 
-    db_dml cost_center_update "
-	update im_cost_centers set
-		cost_center_name	= :cost_center_name,
-		cost_center_label	= :cost_center_label,
-		cost_center_code 	= :cost_center_code,
-		cost_center_type_id	= :cost_center_type_id,
-		cost_center_status_id	= :cost_center_status_id,
-		department_p		= :department_p,
-		parent_id		= :parent_id,
-		manager_id		= :manager_id,
-		description		= :description
-	where
-		cost_center_id = :cost_center_id
-    "
+    if {[catch {
+	db_dml cost_center_update "
+		update im_cost_centers set
+			cost_center_name	= :cost_center_name,
+			cost_center_label	= :cost_center_label,
+			cost_center_code 	= :cost_center_code,
+			cost_center_type_id	= :cost_center_type_id,
+			cost_center_status_id	= :cost_center_status_id,
+			department_p		= :department_p,
+			parent_id		= :parent_id,
+			manager_id		= :manager_id,
+			description		= :description
+		where
+			cost_center_id = :cost_center_id
+    	"
+    } err_msg]} {
+        global errorInfo
+        ns_log Error $errorInfo
+        ad_return_complaint 1  "<strong>[lang::message::lookup "" intranet-cost.ErrorUpdatingCC "Error updating Cost Center. Please see sql error message for more details:"]</strong> <br/><br/> $errorInfo"
+        ad_script_abort
+    }
 
     # 2014-02-20 fraber: Generates a strange error.
     # Why was this necessary in the first place?
