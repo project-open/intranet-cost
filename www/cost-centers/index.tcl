@@ -158,3 +158,84 @@ append left_navbar_html "
 		</ul>
 	</div>
 "
+
+
+
+# ------------------------------------------------------
+# Cost Center Consistency Check
+# ------------------------------------------------------
+
+set inconsistent_parents_sql "
+	select	t.*,
+		im_cost_center_name_from_id(parent_id) as parent,
+		im_cost_center_name_from_id(code_parent_id) as code_parent,
+		im_cost_center_name_from_id(sortkey_parent_id) as sortkey_parent
+	from	(
+		select	cc.*,
+			(select cc1.cost_center_id from im_cost_centers cc1 where cc1.cost_center_code = substring(cc.cost_center_code from '^(.*)..$')) as code_parent_id,
+			(select	cc2.cost_center_id 
+			from	im_cost_centers cc2 
+			where	cc2.tree_sortkey = tree_ancestor_key(cc.tree_sortkey,tree_level(cc.tree_sortkey)-1)
+			) as sortkey_parent_id,
+			tree_ancestor_key(cc.tree_sortkey, 1) as parent_sortkey,
+			trunc(length(cc.cost_center_code) / 2) as code_level
+		from	im_cost_centers cc
+	) t
+	where	parent_id != sortkey_parent_id OR parent_id != code_parent_id
+	order by tree_sortkey
+"
+set inconsistent_count 0
+db_multirow -extend {cc_chk cc_url message indent} inconsistent_parents inconsistent_parents $inconsistent_parents_sql {
+    set message "asdf"
+
+    set indent ""
+    for {set i 0} {$i < $code_level} {incr i} {
+        append indent "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+    }
+
+    set cc_url [export_vars -base "/intranet-cost/cost-centers/new" {cost_center_id {form_mode edit}}]
+
+    set cc_chk "<input type=\"checkbox\" checked
+                                name=\"cost_center_id\"
+                                value=\"$cost_center_id\"
+                                id=\"subprojects,$cost_center_id\"
+    >"
+    incr inconsistent_count
+}
+
+
+set list_id "inconsistent_parents"
+set bulk_actions_list [list]
+
+template::list::create \
+    -name "inconsistent_parents" \
+    -multirow inconsistent_parents \
+    -key cost_center_id \
+    -has_checkboxes \
+    -bulk_actions $bulk_actions_list \
+    -elements {
+        cc_chk {
+            label "<input type=\"checkbox\" checked
+                          name=\"_dummy\"
+                          onclick=\"acs_ListCheckAll('inconsistent_parents', this.checked)\"
+                          title=\"Check/uncheck all rows\">"
+            display_template {
+                @inconsistent_parents.cc_chk;noquote@
+            }
+        }
+        cc_name {
+            label "[lang::message::lookup {} intranet-cost.Name Name]"
+            display_template {
+                @inconsistent_parents.indent;noquote@<a href=@inconsistent_parents.cc_url;noquote@>@inconsistent_parents.cost_center_name@</a>
+            }
+        }
+        parent {
+            label "[lang::message::lookup {} intranet-cost.Direct_Parent {Direct Parent}]"
+        }
+        code_parent {
+            label "[lang::message::lookup {} intranet-cost.Code_Parent {Code Parent}]"
+        }
+        sortkey_parent {
+            label "[lang::message::lookup {} intranet-cost.Sortkey_Parent {Sortkey Parent}]"
+        }
+    }
