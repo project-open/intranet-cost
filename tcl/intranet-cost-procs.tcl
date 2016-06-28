@@ -1372,8 +1372,10 @@ ad_proc im_costs_project_finance_component {
 	    <td>[_ intranet-cost.Company]</td>
 	    <td>[_ intranet-cost.Due]</td>
 	    <td align='right'>[_ intranet-cost.Amount]</td>
+<!--
 	    <td align='right'>[lang::message::lookup "" intranet-cost.Org_Amount "Org"]</td>
 	    <td align='right'>[_ intranet-cost.Paid]</td>
+-->
 	  </tr>
 	  </thead>
 	  <tbody>
@@ -1462,6 +1464,8 @@ ad_proc im_costs_project_finance_component {
 	    set default_currency_read_p ""
 	}
 
+	if {$cost_type_id eq [im_cost_type_timesheet]} { set company_name "" }
+
 	append cost_html "
 	<tr $bgcolor([expr {$ctr % 2}])>
 	  <td><nobr>$cost_url[string range $cost_name 0 30]</A></nobr></td>
@@ -1469,8 +1473,10 @@ ad_proc im_costs_project_finance_component {
 	  <td>$company_name</td>
 	  <td><nobr>$calculated_due_date</nobr></td>
 	  <td align='right'><nobr>$amount_converted $default_currency_read_p</nobr></td>
+<!--
 	  <td align='right'><nobr>$amount_unconverted</td>
 	  <td align='right'><nobr>$amount_paid</nobr></td>
+-->
 	</tr>\n"
 	incr ctr
     }
