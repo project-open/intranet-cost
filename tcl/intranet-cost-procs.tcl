@@ -1390,6 +1390,9 @@ ad_proc im_costs_project_finance_component {
     set old_cost_type_id 0
     db_foreach recent_costs $costs_sql {
 
+	# Status with translation
+	set cost_status [im_category_from_id $cost_status_id]
+
 	# Write the subtotal line of the last cost_type_id section
 	if {$cost_type_id != $old_cost_type_id} {
 	    if {0 != $old_cost_type_id} {
