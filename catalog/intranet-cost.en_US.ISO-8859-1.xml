@@ -54,6 +54,7 @@
   <msg key="Exchange_Rates">Exchange Rates</msg>
   <msg key="Exp_Budget">Exp. Budget</msg>
   <msg key="Exp_Costs">Exp. Costs</msg>
+  <msg key="Expense_Budget">Expense Budget</msg>
   <msg key="Expenses">Expenses</msg>
   <msg key="Export_Finance_to_CSV">Export Finance to CSV</msg>
   <msg key="Filed">Filed</msg>

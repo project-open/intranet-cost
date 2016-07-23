@@ -12,8 +12,8 @@
   <msg key="Ad_hoc_paid_amount">Bezahlt</msg>
   <msg key="Ad_hoc_provider_name">Lieferant</msg>
   <msg key="Admin">Admin</msg>
-  <msg key="AdminCostCenter">Administration Kostenstellen</msg>
-  <msg key="Administration">Administration</msg>
+  <msg key="AdminCostCenter">Admin Kostenstellen</msg>
+  <msg key="Administration">Admin</msg>
   <msg key="All_Costs">Alle Kosten</msg>
   <msg key="Amount">Betrag</msg>
   <msg key="Amount_without_VAT">Betrag ohne MwSt.</msg>
@@ -57,6 +57,7 @@
   <msg key="Exchange_Rates">Wechselkurse</msg>
   <msg key="Exp_Budget">Erwartetes Budget</msg>
   <msg key="Exp_Costs">Erwartete Kosten</msg>
+  <msg key="Expense_Budget">Expense Budget</msg>
   <msg key="Expenses">Andere Kosten</msg>
   <msg key="Export_Finance_to_CSV">Finanzen als CSV exportieren</msg>
   <msg key="Filed">Archiviert</msg>
@@ -71,10 +72,11 @@
   <msg key="Financial_Summary">Finanzielle Zusammenfassung</msg>
   <msg key="Go">Los</msg>
   <msg key="Grand_Total">Gesamtsumme</msg>
+  <msg key="Help_Blurb">Finance Home Page Help</msg>
   <msg key="InheritFrom">Erben von</msg>
   <msg key="Investment">Investition</msg>
   <msg key="Invoice">Rechnungen</msg>
-  <msg key="lt_Cost_Item_Administrat">Kosten administrieren</msg>
+  <msg key="lt_Cost_Item_Administrat">Admin Kostenelemente</msg>
   <msg key="lt_Create_a_new_purchase">Neuer Auftrag</msg>
   <msg key="lt_Didnt_find_the_the_vi">Die Sicht &#39;%$view_name%&#39; wurde nicht gefunden.</msg>
   <msg key="lt_Distribute_costs_acco">Verteilung der Kosten auf Basis von Zeiterfassungsinformationen</msg>
