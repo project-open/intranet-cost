@@ -2317,5 +2317,12 @@ ad_proc -public im_menu_finance_admin_links {
 	lappend result_list [list [lang::message::lookup "" intranet-timesheet2.Import_Financial_Items_from_CSV "Import Financial Items from CSV"] [export_vars -base "/intranet-csv-import/index" {{object_type im_invoice} return_url}]]
     }
 
+    # Append user-defined menus
+    set bind_vars [list return_url $return_url]
+    set links [im_menu_ul_list -no_uls 1 -list_of_links 1 "finance_admin" $bind_vars]
+    foreach link $links {
+        lappend result_list $link
+    }
+
     return $result_list
 }
