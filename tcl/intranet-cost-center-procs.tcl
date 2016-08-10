@@ -39,6 +39,42 @@ ad_proc -public im_cost_center_name {
     return [util_memoize [list db_string ccname "select cost_center_name from im_cost_centers where cost_center_id = $cost_center_id" -default ""]]
 }
 
+
+ad_proc -public im_sub_cost_center_ids {
+    cost_center_id
+} {
+    Returns the list of sub cost centers, order by tree_sortkey.
+    Returns 0 if it didn't find the initial cost center
+} {
+    return [util_memoize [list im_sub_cost_center_ids_helper $cost_center_id]]
+}
+
+ad_proc -public im_sub_cost_center_ids_helper {
+    cost_center_id
+} {
+    Returns the list of sub cost centers, order by tree_sortkey.
+    Returns 0 if it didn't find the initial cost center
+} {
+    set cc_code [db_string cc_code "select cost_center_code from im_cost_centers where cost_center_id = :cost_center_id" -default 0]
+    if {0 eq $cc_code} { return 0 }
+
+    set sub_cc_sql "
+	select cost_center_id
+	from   im_cost_centers
+	where  substring(cost_center_code for [string length $cc_code]) = :cc_code
+	order by cost_center_code
+    "
+    set result [list]
+    db_foreach sub_ccs $sub_cc_sql {
+	lappend result $cost_center_id
+    }
+    return $result
+}
+
+
+
+
+
 # -----------------------------------------------------------
 # Permissions
 # -----------------------------------------------------------

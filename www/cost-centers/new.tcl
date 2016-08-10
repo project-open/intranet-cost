@@ -17,8 +17,8 @@ ad_page_contract {
     edit_p:optional
     message:optional
     { form_mode "display" }
+    { view_name "" }
 }
-
 
 # ------------------------------------------------------------------
 # Default & Security
@@ -44,9 +44,8 @@ if {[info exists cost_center_id]} {
 }
 
 set context [im_context_bar $page_title]
-
 if {![info exists cost_center_id]} { set form_mode "edit" }
-
+set enable_master_p 1
 
 # ------------------------------------------------------------------
 # Build the form
@@ -176,7 +175,8 @@ ad_form -extend -name cost_center -on_request {
 
 # ----------------------------------------------------------------
 # Left Navbar
-
+#
+set sub_navbar ""
 set admin_html "
 <ul>
 <li><a href=[export_vars -base "/intranet-cost/cost-centers/index" {}]>[lang::message::lookup "" intranet-cost.Admin_Cost_Centers "Admin Cost Centers"]</a>
@@ -193,3 +193,68 @@ append left_navbar_html "
 	    <hr/>
 "
 
+
+
+# ----------------------------------------------------------------
+# Member Component
+#
+
+set member_component_html ""
+if {[info exists cost_center_id]} {
+    set cost_center_code [db_string cc_code "select cost_center_code from im_cost_centers where cost_center_id = :cost_center_id" -default ""]
+    set cost_center_code_len [string length $cost_center_code]
+set member_sql "
+
+	select	e.employee_id,
+		im_name_from_user_id(e.employee_id) as user_name,
+		e.department_id,
+		cc.cost_center_name as department_name,
+		cc.cost_center_code as department_code,
+		round(length(cc.cost_center_code) / 2) -2 as indent_level,
+		e.availability
+	from	im_employees e
+		LEFT OUTER JOIN im_cost_centers cc ON (e.department_id = cc.cost_center_id)
+	where	e.department_id in (
+			select	cost_center_id
+			from	im_cost_centers
+			where	substring(cost_center_code for :cost_center_code_len) = :cost_center_code
+		) and 
+		e.employee_id not in (	     -- only natural active persons
+				select member_id
+				from   group_distinct_member_map
+				where  group_id = [im_profile_skill_profile]
+			   UNION
+				select	u.user_id
+				from	users u,
+					acs_rels r,
+					membership_rels mr
+				where	r.rel_id = mr.rel_id and
+					r.object_id_two = u.user_id and
+					r.object_id_one = -2 and
+					mr.member_state != 'approved'
+		)
+	order by department_code, user_name
+"
+set html ""
+db_foreach cc_members $member_sql {
+    set indent_html ""
+    for {set i 0} {$i < $indent_level} {incr i} { append indent_html "&nbsp; &nbsp; &nbsp; " }
+    if {"" ne $availability} { append availability "%" }
+    append html "<tr>
+	<td>$indent_html<a href='[export_vars -base "/intranet-cost/cost-centers/new" {{cost_center_id $department_id}}]'>$department_name</a></td>
+	<td><a href='[export_vars -base "/intranet/users/view" {{user_id $employee_id}}]'>$user_name</a></td></td>
+	<td align=right>$availability</td>
+    </tr>\n"
+}
+
+set member_component_html "
+<table border=0 cellspacing=1 cellpadding=1>
+<tr class=rowtitle>
+<td class=rowtitle>[lang::message::lookup "" intranet-cost.Department "Department"]</td>
+<td class=rowtitle>[lang::message::lookup "" intranet-cost.Name "Name"]</td>
+<td class=rowtitle>[lang::message::lookup "" intranet-cost.Availability "Availability"]</td>
+</tr>
+$html
+</table>
+"
+}
