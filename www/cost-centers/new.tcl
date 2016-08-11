@@ -236,16 +236,27 @@ set member_sql "
 	order by department_code, user_name
 "
 set html ""
+set sum_availability 0
 db_foreach cc_members $member_sql {
     set indent_html ""
     for {set i 0} {$i < $indent_level} {incr i} { append indent_html "&nbsp; &nbsp; &nbsp; " }
-    if {"" ne $availability} { append availability "%" }
+    if {"" ne $availability} { 
+	set sum_availability [expr $sum_availability + $availability]
+	append availability "%" 
+    }
     append html "<tr>
 	<td>$indent_html<a href='[export_vars -base "/intranet-cost/cost-centers/new" {{cost_center_id $department_id}}]'>$department_name</a></td>
 	<td><a href='[export_vars -base "/intranet/users/view" {{user_id $employee_id}}]'>$user_name</a></td></td>
 	<td align=right>$availability</td>
     </tr>\n"
 }
+append html "<tr>
+	<td></td>
+	<td align=right><b>[lang::message::lookup "" intranet-cost.Sum "Sum"]</b></td>
+	<td align=right><b>$sum_availability%</b></td>
+</tr>\n"
+
+
 
 set member_component_html "
 <table border=0 cellspacing=1 cellpadding=1>
