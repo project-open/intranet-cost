@@ -1157,7 +1157,6 @@ ad_proc -public im_costs_company_profit_loss_component {
 }
 
 
-
 # ---------------------------------------------------------------
 # Benefits & Loss Calculation per Project
 # ---------------------------------------------------------------
@@ -1648,45 +1647,67 @@ ad_proc im_costs_project_finance_component {
     # if the intranet-invoices module is installed
     set admin_html ""
     if {$show_admin_links_p && [im_table_exists im_invoices]} {
+
 	# Customer invoices: customer = Project Customer, provider = Internal
 	set customer_id [util_memoize [list db_string project_customer "select company_id from im_projects where project_id = $org_project_id" -default ""]]
 	set provider_id [im_company_internal]
 	set bind_vars [list project_id $project_id customer_id $customer_id provider_id $provider_id]
+	set customer_links [im_menu_invoice_creation_matrix "invoices_customers" $bind_vars]
+	set customer_help_h1 "<h1>[lang::message::lookup "" intranet-cost.Invoicing_Quoting_Wizards "Invoicing & Quoting Wizards"]</h1>\n"
+	set customer_help_html [im_help_collapsible [lang::message::lookup "" intranet-cost.Invoicing_Wizards_Help "
+		<p>This table includes wizards that allow you to create customer
+		   financial documents (quotes, invoices, orders, ...)
+		   using a variety of methods:
+		<ul>
+		<li><b>From Scratch</b>:<br>
+		    Create a new document manually 'from scratch'.
+		    This is the most simple option and gives you with total freedom.
+		</li>
+		<li><b>From Gantt Task (planned or logged hours)</b>:<br>
+		    Create a new document based on a project plan 
+		    and it's planned or logged work hours.<br>
+		</li>
+		<li><b>From &lt;Other Document&gt;</b>:<br>
+		    Create a new document starting off with a copy of another document.
+		    This is useful for example to invoice (parts of) quoted work.
+		</li>
+		</ul>
+	"]]
 
-	# set html_customer_links [im_menu_ul_list -package_key intranet-invoices "invoices_customers" $bind_vars]
-	set html_customer_links [im_menu_ul_list "invoices_customers" $bind_vars]
+	if {"" ne $customer_links} {
+	    append admin_html $customer_help_h1
+	    append admin_html $customer_help_html
+	    append admin_html $customer_links
+	}
 
 	# Provider invoices: customer = Internal, no provider yet defined
 	set customer_id [im_company_internal]
-	set bind_vars [list customer_id $customer_id project_id $project_id]	
+	set bind_vars [list project_id $project_id customer_id $customer_id]
+	set provider_links [im_menu_invoice_creation_matrix "invoices_providers" $bind_vars]
+	set provider_help_h1 "<h1>[lang::message::lookup "" intranet-cost.Order_Wizards "Order Wizards"]</h1>\n"
+	set provider_help_html [im_help_collapsible [lang::message::lookup "" intranet-cost.Order_Wizards_Help "
+		<p>This table includes wizards that allow you to create provider
+		   financial documents (orders, provider bill, ...)
+		   using a variety of methods:
+		<ul>
+		<li><b>From Scratch</b>:<br>
+		    Create a new document manually 'from scratch'.
+		    This is the most simple option and gives you with total freedom.
+		</li>
+		<li><b>From &lt;Other Document&gt;</b>:<br>
+		    Create a new document starting off with a copy of another document.
+		    This is useful for example to invoice (parts of) quoted work.
+		</li>
+		</ul>
+	"]]
 
-	# set html_provider_links [im_menu_ul_list -package_key intranet-invoices "invoices_providers" $bind_vars]
-	set html_provider_links [im_menu_ul_list "invoices_providers" $bind_vars]
-
-	if { $html_customer_links ne "" || $html_provider_links ne "" } {
-		set admin_html "
-		<h1>[_ intranet-core.Admin_Links]</h1>
-		<table>
-		<tr class=rowplain>
-		<td>\n"
-		if { $html_customer_links ne "" } {
-			append admin_html "<h2>"
-		    	append admin_html [lang::message::lookup "" intranet-cost.Customer_Links "Customer Actions"]
-		    	append admin_html "</h2>"	
-	      	    	append admin_html $html_customer_links
-		}
-                if { $html_provider_links ne "" } {
-			append admin_html "<br><h2>"			
-			append admin_html [lang::message::lookup "" intranet-cost.Provider_Links "Provider Actions"]
-			append admin_html "</h2>"	
-			append admin_html $html_provider_links
-		}
-	    append admin_html "	
-	  </td>
-	</tr>
-	</table>
-	"
+	if {"" ne $provider_links} {
+	    append admin_html $provider_help_h1
+	    append admin_html $provider_help_html
+	    append admin_html $provider_links
 	}
+
+
     }
 
     # ----------------- Assemble the "Summary" component ---------------------------
