@@ -2210,7 +2210,7 @@ ad_proc -public im_navbar_tree_finance {
     set html "
 	<li><a href=\"/intranet-cost/\">[lang::message::lookup "" intranet-cost.Finance "Finance"]</a>
 	<ul>
-	<li><a href=\"$wiki/module_finance\">[lang::message::lookup "" intranet-core.Finance_Help "Finance Help"]</a>
+	<li><a href=\"$wiki/module-finance\">[lang::message::lookup "" intranet-core.Finance_Help "Finance Help"]</a>
 
 		<li><a href=\"/intranet-invoices/list?cost_type_id=3708\">[lang::message::lookup "" intranet-cost.New_Customer_Invoices_Quotes "New Cust. Invoices &amp; Quotes"]</a>
 		<ul>
