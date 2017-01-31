@@ -477,8 +477,8 @@ where
 
 -------------------------------------------------------------
 -- Setup the cost_centers of a small consulting company that
--- offers strategic consulting projects and IT projects,
--- both following a fixed methodology (number project phases).
+-- offers strategic and IT projects, both following a fixed 
+-- methodology (number project phases).
 
 
 -- Creating sample cost center configuration
