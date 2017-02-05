@@ -87,17 +87,26 @@ SELECT im_category_new (3732,'InterCo Invoice','Intranet Cost Type');
 SELECT im_category_new (3734,'Provider Receipt','Intranet Cost Type');
 -- Fake cost types for timesheet _hours_
 SELECT im_category_new (3736,'Timesheet Hours','Intranet Cost Type');
-
-
-
 -- reserved until 3799
 
--- Establish the super-categories "Provider Documents" and "Customer Documents"
+
+-- Establish the super-category "Provider Documents"
 SELECT im_category_hierarchy_new(3704,3710);
 SELECT im_category_hierarchy_new(3706,3710);
+-- Provider Receipt is a Provider Document
+SELECT im_category_hierarchy_new(3734,3710);
+
+
+
+-- Establish the super-category "Customer Documents"
 SELECT im_category_hierarchy_new(3700,3708);
 SELECT im_category_hierarchy_new(3702,3708);
 SELECT im_category_hierarchy_new(3724,3708);
+-- Defined InterCo Quote and Invoices as customer document
+SELECT im_category_hierarchy_new(3730,3708);
+SELECT im_category_hierarchy_new(3732,3708);
+
+
 
 
 -- Creating category Cost Status
@@ -249,7 +258,7 @@ extra_select, extra_where, sort_order, visible_for) values (2110,21,NULL,'Invali
 
 insert into im_view_columns (column_id, view_id, group_id, column_name, column_render_tcl,
 extra_select, extra_where, sort_order, visible_for) values (2111,21,NULL,'Budget',
-'"$project_budget $project_budget_currency"','','',11,'im_permission $user_id view_budget');
+'"$project_budget"','','',11,'im_permission $user_id view_budget');
 
 insert into im_view_columns (column_id, view_id, group_id, column_name, column_render_tcl,
 extra_select, extra_where, sort_order, visible_for) values (2113,21,NULL,'Budget Hours',
