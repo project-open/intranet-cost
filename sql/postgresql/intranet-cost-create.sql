@@ -133,7 +133,7 @@ create index im_cost_centers_treesort_idx on im_cost_centers(tree_sortkey);
 
 
 
-create or replace function im_cost_centers_insert_tr ()
+create or replace function im_cost_center_insert_tr ()
 returns trigger as $$
 DECLARE
 	v_max_child_sortkey		varbit;
@@ -158,7 +158,9 @@ BEGIN
 	RETURN new;
 END;$$ language 'plpgsql';
 
-create or replace function im_cost_centers_update_tr () 
+
+
+create or replace function im_cost_center_update_tr () 
 returns trigger as $$
 DECLARE
 	v_parent_sk		varbit default null;
@@ -198,10 +200,9 @@ create trigger im_cost_center_insert_tr
 before insert on im_cost_centers
 for each row execute procedure im_cost_center_insert_tr();
 
-create trigger im_cost_centers_update_tr after update
+create trigger im_cost_center_update_tr after update
 on im_cost_centers for each row
-execute procedure im_cost_centers_update_tr ();
-
+execute procedure im_cost_center_update_tr ();
 
 
 
@@ -211,16 +212,6 @@ execute procedure im_cost_centers_update_tr ();
 -- Add a default cost center to im_projects and
 -- add a trigger for setting the default value.
 --
-
-alter table im_projects
-add project_cost_center_id integer
-constraint im_projects_cost_center_fk references im_cost_centers;
-
--- Initialize cost centers based on project manager
-update im_projects                                                                           
-set project_cost_center_id = (select e.department_id from im_employees e where e.employee_id = im_projects.project_lead_id)
-where parent_id is null and project_cost_center_id is null;
-
 
 create or replace function im_project_project_cost_center_update_tr ()
 returns trigger as $body$
@@ -1433,7 +1424,7 @@ drop function inline_0 ();
 insert into acs_object_type_tables (object_type,table_name,id_column)
 values ('im_repeating_cost', 'im_repeating_costs', 'rep_cost_id');
 insert into acs_object_type_tables (object_type,table_name,id_column)
-values ('im_cost', 'im_costs', 'cost_id');
+values ('im_repeating_cost', 'im_costs', 'cost_id');
 
 
 update acs_object_types set
