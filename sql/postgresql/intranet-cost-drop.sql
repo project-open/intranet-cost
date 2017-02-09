@@ -15,12 +15,16 @@ select im_component_plugin__del_module('intranet-cost');
 
 --------------------------------------------------------------
 
-DROP TRIGGER im_projects_project_cache_del_tr ON im_projects;
-DROP TRIGGER im_projects_project_cache_up_tr ON im_projects;
+
+
 
 DROP TRIGGER im_costs_project_cache_del_tr ON im_costs;
-DROP TRIGGER im_costs_project_cache_up_tr ON im_costs;
 DROP TRIGGER im_costs_project_cache_ins_tr ON im_costs;
+DROP TRIGGER im_costs_project_cache_up_tr ON im_costs;
+DROP TRIGGER im_project_project_cost_center_update_tr on im_projects;
+DROP TRIGGER im_projects_project_cache_up_tr ON im_projects;
+-- DROP TRIGGER im_projects_project_cache_del_tr ON im_projects;
+
 
 drop function im_cost_project_cache_invalidator (integer);
 
@@ -29,21 +33,27 @@ drop function im_cost_project_cache_del_tr ();
 drop function im_cost_project_cache_ins_tr ();
 
 drop function im_project_project_cache_up_tr ();
-drop function im_project_project_cache_del_tr ();
+-- drop function im_project_project_cache_del_tr ();
 
 
 
 
 --------------------------------------------------------------
+-- im_projects cost cache
+--
 
-
-alter table im_projects drop column cost_quotes_cache;
-alter table im_projects drop column cost_invoices_cache;
-alter table im_projects drop column cost_timesheet_pladned_cache;
-
-alter table im_projects drop column cost_purchase_orders_cache;
 alter table im_projects drop column cost_bills_cache;
+alter table im_projects drop column cost_cache_dirty;
+alter table im_projects drop column cost_delivery_notes_cache;
+alter table im_projects drop column cost_expense_logged_cache;
+alter table im_projects drop column cost_expense_planned_cache;
+alter table im_projects drop column cost_invoices_cache;
+alter table im_projects drop column cost_purchase_orders_cache;
+alter table im_projects drop column cost_quotes_cache;
 alter table im_projects drop column cost_timesheet_logged_cache;
+alter table im_projects drop column cost_timesheet_planned_cache;
+alter table im_projects drop column reported_days_cache;
+alter table im_projects drop column reported_hours_cache;
 
 
 delete from im_view_columns where view_id >= 220 and view_id <= 229;
@@ -126,17 +136,72 @@ BEGIN
 
 end;' language 'plpgsql';
 
--- begin
-   select inline_revoke_permission ('view_costs');
-   select acs_privilege__drop_privilege ('view_costs');
-   select inline_revoke_permission ('add_costs');
-   select acs_privilege__drop_privilege ('add_costs');
--- end;
+select inline_revoke_permission ('view_costs');
+select inline_revoke_permission ('add_costs');
+select inline_revoke_permission ('fi_view_internal_rates');
+select inline_revoke_permission ('fi_read_all');
+select inline_revoke_permission ('fi_read_bills');
+select inline_revoke_permission ('fi_read_delivery_notes');
+select inline_revoke_permission ('fi_read_expense_bundles');
+select inline_revoke_permission ('fi_read_expense_items');
+select inline_revoke_permission ('fi_read_interco_invoices');
+select inline_revoke_permission ('fi_read_interco_quotes');
+select inline_revoke_permission ('fi_read_invoices');
+select inline_revoke_permission ('fi_read_pos');
+select inline_revoke_permission ('fi_read_quotes');
+select inline_revoke_permission ('fi_read_repeatings');
+select inline_revoke_permission ('fi_read_timesheets');
+select inline_revoke_permission ('fi_view_internal_rates');
+select inline_revoke_permission ('fi_write_all');
+select inline_revoke_permission ('fi_write_bills');
+select inline_revoke_permission ('fi_write_delivery_notes');
+select inline_revoke_permission ('fi_write_expense_bundles');
+select inline_revoke_permission ('fi_write_expense_items');
+select inline_revoke_permission ('fi_write_interco_invoices');
+select inline_revoke_permission ('fi_write_interco_quotes');
+select inline_revoke_permission ('fi_write_invoices');
+select inline_revoke_permission ('fi_write_pos');
+select inline_revoke_permission ('fi_write_quotes');
+select inline_revoke_permission ('fi_write_repeatings');
+select inline_revoke_permission ('fi_write_timesheets');
+
+select acs_privilege__drop_privilege ('view_costs');
+select acs_privilege__drop_privilege ('add_costs');
+select acs_privilege__drop_privilege ('fi_view_internal_rates');
+select acs_privilege__drop_privilege ('fi_read_all');
+select acs_privilege__drop_privilege ('fi_read_bills');
+select acs_privilege__drop_privilege ('fi_read_delivery_notes');
+select acs_privilege__drop_privilege ('fi_read_expense_bundles');
+select acs_privilege__drop_privilege ('fi_read_expense_items');
+select acs_privilege__drop_privilege ('fi_read_interco_invoices');
+select acs_privilege__drop_privilege ('fi_read_interco_quotes');
+select acs_privilege__drop_privilege ('fi_read_invoices');
+select acs_privilege__drop_privilege ('fi_read_pos');
+select acs_privilege__drop_privilege ('fi_read_quotes');
+select acs_privilege__drop_privilege ('fi_read_repeatings');
+select acs_privilege__drop_privilege ('fi_read_timesheets');
+select acs_privilege__drop_privilege ('fi_view_internal_rates');
+select acs_privilege__drop_privilege ('fi_write_all');
+select acs_privilege__drop_privilege ('fi_write_bills');
+select acs_privilege__drop_privilege ('fi_write_delivery_notes');
+select acs_privilege__drop_privilege ('fi_write_expense_bundles');
+select acs_privilege__drop_privilege ('fi_write_expense_items');
+select acs_privilege__drop_privilege ('fi_write_interco_invoices');
+select acs_privilege__drop_privilege ('fi_write_interco_quotes');
+select acs_privilege__drop_privilege ('fi_write_invoices');
+select acs_privilege__drop_privilege ('fi_write_pos');
+select acs_privilege__drop_privilege ('fi_write_quotes');
+select acs_privilege__drop_privilege ('fi_write_repeatings');
+select acs_privilege__drop_privilege ('fi_write_timesheets');
+
+
+
+
+
 
 
 delete from im_biz_object_urls where object_type='im_cost';
 
--- drop package im_cost;
 
 drop view im_cost_status;
 drop view im_cost_types;
@@ -155,15 +220,9 @@ delete from im_categories where category_id >= 3500 and category_id < 3599;
 delete from im_category_hierarchy where (parent_id >= 3400 and parent_id < 3500) or (child_id >= 3400 and child_id < 3500);
 delete from im_categories where category_id >= 3400 and category_id < 3500;
 
-delete from im_biz_object_urls where object_type='im_investment';
 
-
--- begin
-delete from im_biz_object_urls where object_type = 'im_cost_center';
--- end;
 
 -- Drop tables
-
 drop table im_investments;
 drop table im_repeating_costs;
 drop table im_costs;
@@ -171,10 +230,9 @@ drop table im_prices;
 drop table im_cost_centers;
 
 -- Drop object types
-
--- begin
+delete from im_biz_object_urls where object_type in ('im_investment', 'im_repeating_cost', 'im_cost', 'im_cost_center');
+delete from acs_object_type_tables where object_type in ('im_investment', 'im_repeating_cost', 'im_cost', 'im_cost_center');
 select acs_object_type__drop_type('im_investment', 'f');
 select acs_object_type__drop_type('im_repeating_cost', 'f');
 select acs_object_type__drop_type('im_cost', 'f');
 select acs_object_type__drop_type('im_cost_center','f');
--- end;

@@ -10,716 +10,16 @@
 -- 040917 avila@digiteix.com 
 
 
--------------------------------------------------------------
--- "Cost Centers"
---
--- Cost Centers (actually: cost-, revenue- and investment centers) 
--- are used to model the organizational hierarchy of a company. 
--- Departments are just a special kind of cost centers.
--- Please note that this hierarchy is completely independet of the
--- is-manager-of hierarchy between employees.
---
--- Centers (cost centers) are a "vertical" structure following
--- the organigram of a company, as oposed to "horizontal" structures
--- such as projects.
---
--- Center_id references groups. This group is the "admin group"
--- of this center and refers to the users who are allowed to
--- use or administer the center. Admin members are allowed to
--- change the center data. ToDo: It is not clear what it means to 
--- be a regular menber of the admin group.
---
--- The manager_id is the person ultimately responsible for
--- the center. He or she becomes automatically "admin" member
--- of the "admin group".
---
--- Access to centers are controled using the OpenACS permission
--- system. Privileges include:
---	- administrate
---	- input_costs
---	- confirm_costs
---	- propose_budget
---	- confirm_budget
+select im_menu__del_module('intranet-cost');
+select im_component_plugin__del_module('intranet-cost');
+
+\i intranet-cost-common.sql
+\i intranet-cost-backup.sql
+\i intranet-cost-menus-create.sql
+\i intranet-cost-components-create.sql
+\i intranet-cost-center-create.sql
+\i intranet-price-list-create.sql
 
-\i ../common/intranet-cost-common.sql
-
-
-
-SELECT acs_object_type__create_type (
-		'im_cost_center',	-- object_type
-		'Cost Center',		-- pretty_name
-		'Cost Centers',		-- pretty_plural	
-		'acs_object',		-- supertype
-		'im_cost_centers',	-- table_name
-		'cost_center_id',	-- id_column
-		'im_cost_center',	-- package_name
-		'f',			-- abstract_p
-		null,			-- type_extension_table
-		'im_cost_center__name'	-- name_method
-);
-
-insert into acs_object_type_tables (object_type,table_name,id_column)
-values ('im_cost_center', 'im_cost_centers', 'cost_center_id');
-
-
--- Creating URLs for viewing/editing cost centers
-insert into im_biz_object_urls (object_type, url_type, url) values (
-'im_cost_center','view','/intranet-cost/cost-centers/new?form_mode=display\&cost_center_id=');
-insert into im_biz_object_urls (object_type, url_type, url) values (
-'im_cost_center','edit','/intranet-cost/cost-centers/new?form_mode=edit\&cost_center_id=');
-
-update acs_object_types set
-	status_type_table = 'im_cost_centers',
-	status_column = 'cost_center_status_id',
-	type_column = 'cost_center_type_id'
-where object_type = 'im_cost_center';
-
-
-
-create table im_cost_centers (
-	cost_center_id		integer
-				constraint im_cost_centers_pk
-				primary key
-				constraint im_cost_centers_id_fk
-				references acs_objects,
-	cost_center_name	text
-				constraint im_cost_centers_name_nn
-				not null,
-	cost_center_label	varchar(100)
-				constraint im_cost_centers_label_nn
-				not null
-				constraint im_cost_centers_label_un
-				unique,
-				-- Hierarchical upper case code for cost center 
-				-- with two characters for each level:
-				-- ""=Company, "Ad"=Administration, "Op"=Operations,
-				-- "OpAn"=Operations/Analysis, ...
-	cost_center_code	varchar(400)
-				constraint im_cost_centers_code_nn
-				not null,
-	cost_center_type_id	integer not null
-				constraint im_cost_centers_type_fk
-				references im_categories,
-	cost_center_status_id	integer not null
-				constraint im_cost_centers_status_fk
-				references im_categories,
-				-- Is this a department?
-	department_p		char(1)
-				constraint im_cost_centers_dept_p_ck
-				check(department_p in ('t','f')),
-				-- Where to report costs?
-				-- The toplevel_center has parent_id=null.
-	parent_id		integer 
-				constraint im_cost_centers_parent_fk
-				references im_cost_centers,
-				-- Who is responsible for this cost_center?
-	manager_id		integer
-				constraint im_cost_centers_manager_fk
-				references users,
-	description		text,
-	note			text,
-	tree_sortkey		varbit,
-	max_child_sortkey	varbit,
-
-		-- don't allow two cost centers under the same parent
-		constraint im_cost_centers_un
-		unique(cost_center_name, parent_id)
-);
-create index im_cost_centers_parent_id_idx on im_cost_centers(parent_id);
-create index im_cost_centers_manager_id_idx on im_cost_centers(manager_id);
-
--- Speed up child-sortkey queries
-create index im_cost_centers_treesort_idx on im_cost_centers(tree_sortkey);
-
-
-
-create or replace function im_cost_center_insert_tr ()
-returns trigger as $$
-DECLARE
-	v_max_child_sortkey		varbit;
-	v_parent_sortkey		varbit;
-BEGIN
-	IF new.parent_id is null THEN
-		new.tree_sortkey := int_to_tree_key(new.cost_center_id);
-	ELSE
-		SELECT	tree_sortkey, tree_increment_key(max_child_sortkey)
-		INTO	v_parent_sortkey, v_max_child_sortkey
-		FROM	im_cost_centers
-		WHERE	cost_center_id = new.parent_id
-		for update;
-
-		update im_cost_centers
-		set max_child_sortkey = v_max_child_sortkey
-		where cost_center_id = new.parent_id;
-
-		new.tree_sortkey := v_parent_sortkey || v_max_child_sortkey;
-	END IF;
-	new.max_child_sortkey := null;
-	RETURN new;
-END;$$ language 'plpgsql';
-
-
-
-create or replace function im_cost_center_update_tr () 
-returns trigger as $$
-DECLARE
-	v_parent_sk		varbit default null;
-	v_max_child_sortkey	varbit;
-	v_old_parent_length	integer;
-BEGIN
-	IF new.cost_center_id = old.cost_center_id and ((new.parent_id = old.parent_id) or (new.parent_id is null and old.parent_id is null)) THEN 
-		return new; 
-	END IF;
-
-	v_old_parent_length := length(new.tree_sortkey) + 1;
-	IF new.parent_id is null THEN
-		v_parent_sk := int_to_tree_key(new.cost_center_id);
-	ELSE
-		SELECT	tree_sortkey, tree_increment_key(max_child_sortkey)
-		INTO v_parent_sk, v_max_child_sortkey
-		FROM im_cost_centers
-		WHERE cost_center_id = new.parent_id
-		FOR UPDATE;
-
-		UPDATE im_cost_centers
-		SET max_child_sortkey = v_max_child_sortkey
-		WHERE cost_center_id = new.parent_id;
-
-		v_parent_sk := v_parent_sk || v_max_child_sortkey;
-	END IF;
-
-	UPDATE im_cost_centers
-	SET tree_sortkey = v_parent_sk || substring(tree_sortkey, v_old_parent_length)
-	WHERE tree_sortkey between new.tree_sortkey and tree_right(new.tree_sortkey);
-
-	RETURN new;
-END;$$ language 'plpgsql';
-
-
-create trigger im_cost_center_insert_tr
-before insert on im_cost_centers
-for each row execute procedure im_cost_center_insert_tr();
-
-create trigger im_cost_center_update_tr after update
-on im_cost_centers for each row
-execute procedure im_cost_center_update_tr ();
-
-
-
-
-
--------------------------------------------------------------
--- Add a default cost center to im_projects and
--- add a trigger for setting the default value.
---
-
-create or replace function im_project_project_cost_center_update_tr ()
-returns trigger as $body$
-DECLARE
-	v_ccid		integer;
-	row		RECORD;
-BEGIN
-	----------------------------------------------------------------
-	-- Check if there was a change in the project_cost_center_id
-	-- and propagete the change to the children
-	IF
-		old.project_cost_center_id is not null and
-		new.project_cost_center_id is not null and
-		old.project_cost_center_id != new.project_cost_center_id
-	THEN 
-		-- Propagate to direct subprojects
-		-- These _direct_ subprojects are responsible for
-		-- further propagating down, creating a recursion loop.
-		-- ToDo
-		RAISE NOTICE 'im_project_project_cost_center_update_tr: %: Propagating to children', new.project_id;
-		FOR row IN
-			select	sub_p.project_id
-			from	im_projects sub_p
-			where	sub_p.parent_id = new.project_id
-		LOOP
-			update	im_projects
-			set	project_cost_center_id = new.project_cost_center_id
-			where	project_id = row.project_id;
-		END LOOP;
-		return new;
-	END IF;
-
-
-	----------------------------------------------------------------
-	-- Check if the project_cost_center_id needs a default value.
-	IF new.project_cost_center_id is null THEN
-		-- Take the project_cost_center_id from the parent if available
-		IF new.parent_id is not null THEN
-			select	pp.project_cost_center_id into v_ccid
-			from	im_projects pp
-			where	pp.project_id = new.parent_id;
-			
-			IF v_ccid is not null THEN
-				RAISE NOTICE 'im_project_project_cost_center_update_tr: %: Using CC of parent: %', new.project_id, new.parent_id;
-				update	im_projects
-				set	project_cost_center_id = v_ccid
-				where	project_id = new.project_id;
-				-- Attention! This action triggers this same proc recursively,
-				-- leading to a propagation of the value to sub-projects.
-				return new;
-			END IF;
-		END IF;
-
-		-- Use the department of the project manager as a default value
-		select	e.department_id into v_ccid
-		from	im_employees e
-		where	e.employee_id = new.project_lead_id;
-
-		IF v_ccid is not null THEN
-			RAISE NOTICE 'im_project_project_cost_center_update_tr: %: Using CC of PM: %', new.project_id, new.project_lead_id;
-			update	im_projects
-			set	project_cost_center_id = v_ccid
-			where	project_id = new.project_id;
-			-- Attention! This action triggers this same proc recursively,
-			-- leading to a propagation of the value to sub-projects.
-			return new;
-		END IF;
-
-	END IF;
-
-	return new;
-END;$body$ language 'plpgsql';
-
-
-CREATE TRIGGER im_project_project_cost_center_update_tr
-AFTER UPDATE ON im_projects FOR EACH ROW
-EXECUTE PROCEDURE im_project_project_cost_center_update_tr();
-
-
-
-
-
--- Return the list of all cost centers below the one to which the user belongs to
-create or replace function im_user_cost_centers (integer) 
-returns setof integer as $body$
-declare
-	p_user_id		alias for $1;
-	v_cc_code		varchar;
-	row			RECORD;
-BEGIN
-	select	cc.cost_center_code into v_cc_code
-	from	im_employees e, im_cost_centers cc
-	where	e.employee_id = p_user_id and
-		e.department_id = cc.cost_center_id;
-
-	-- Return the list of all cost centers below the one to which the user belongs to
-	FOR row IN
-		select	cc.*
-		from	im_cost_centers cc
-		where	substring(cc.cost_center_code for length(v_cc_code)) = v_cc_code
-	LOOP
-		RETURN NEXT row.cost_center_id;
-	END LOOP;
-
-	RETURN;
-end;$body$ language 'plpgsql';
-
-
-
-
-
-
-
-
--- Return a list of all cost centers below and including the specified cost center
-create or replace function im_sub_cost_centers (integer)
-returns setof integer as $body$
-DECLARE
-	p_cc_id			alias for $1;
-	v_cc_id			integer;
-	v_len			integer;
-	v_super_cc_code		varchar;
-	row			RECORD;
-BEGIN
-	-- Extract len and code from the super cc
-	select	length(cost_center_code), cost_center_code
-	into	v_len, v_super_cc_code
-	from	im_cost_centers
-	where	cost_center_id = p_cc_id;
-
-	-- Return all ids of the sub ccs
-	FOR row IN
-		select	cc.cost_center_id
-		from	im_cost_centers cc
-		where	substring(cost_center_code for v_len) = v_super_cc_code
-	LOOP
-		RETURN NEXT row.cost_center_id;
-	END LOOP;
-
-	RETURN;
-end;$body$ language 'plpgsql';
-
-
-
--- prompt *** intranet-costs: Creating im_cost_center
--- create or replace package im_cost_center
--- is
-create or replace function im_cost_center__new (
-	integer, varchar, timestamptz, integer, varchar, integer,
-	varchar, varchar, varchar, integer, integer, integer, integer, char, varchar, varchar)
-returns integer as '
-DECLARE
-	p_cost_center_id alias for $1;		-- cost_center_id  default null
-	p_object_type	alias for $2;		-- object_type default ''im_cost_center''
-	p_creation_date	alias for $3;		-- creation_date default now()
-	p_creation_user alias for $4;		-- creation_user default null
-	p_creation_ip	alias for $5;		-- creation_ip default null
-	p_context_id	alias for $6;		-- context_id default null
-	p_cost_center_name alias for $7;	-- cost_center_name
-	p_cost_center_label alias for $8;	-- cost_center_label
-	p_cost_center_code	alias for $9;	-- cost_center_code
-	p_type_id		alias for $10;	-- type_id
-	p_status_id		alias for $11;	-- status_id
-	p_parent_id		alias for $12;	-- parent_id
-	p_manager_id		alias for $13;	-- manager_id default null
-	p_department_p		alias for $14;	-- department_p default ''t''
-	p_description		alias for $15;	-- description default null
-	p_note			alias for $16;	-- note default null
-	v_cost_center_id	integer;
- BEGIN
-	v_cost_center_id := acs_object__new (
-		p_cost_center_id,		-- object_id
-		p_object_type,			-- object_type
-		p_creation_date,		-- creation_date
-		p_creation_user,		-- creation_user
-		p_creation_ip,			-- creation_ip
-		p_context_id,			-- context_id
-		''t''				-- security_inherit_p
-	);
-
-	insert into im_cost_centers (
-		cost_center_id, 
-		cost_center_name, cost_center_label,
-		cost_center_code,
-		cost_center_type_id, cost_center_status_id, 
-		parent_id, manager_id,
-		department_p,
-		description, note
-	) values (
-		v_cost_center_id, 
-		p_cost_center_name, p_cost_center_label,
-		p_cost_center_code,
-		p_type_id, p_status_id, 
-		p_parent_id, p_manager_id, 
-		p_department_p,
-		p_description, p_note
-	);
-	return v_cost_center_id;
-end;' language 'plpgsql';
-
-
-
--- Delete a single cost_center (if we know its ID...)
-create or replace function im_cost_center__delete (integer)
-returns integer as '
-DECLARE 
-	p_cost_center_id	alias for $1;	-- cost_center_id
-	v_cost_center_id	integer;
-begin
-	-- copy the variable to desambiguate the var name
-	v_cost_center_id := p_cost_center_id;
-
-	-- Erase the im_cost_centers item associated with the id
-	delete from im_cost_centers
-	where cost_center_id = v_cost_center_id;
-
-	-- Erase all the priviledges
-	delete from acs_permissions
-	where object_id = v_cost_center_id;
-
-	-- Finally delete the object iself
-	PERFORM acs_object__delete(v_cost_center_id);
-	return 0;
-end;' language 'plpgsql';
-
-create or replace function im_cost_center__name (integer)
-returns varchar as '
-DECLARE
-	p_cost_center_id alias for $1;		-- cost_center_id
-	v_name	varchar;
-BEGIN
-	select	cost_center_name
-	into	v_name
-	from	im_cost_centers
-	where	cost_center_id = p_cost_center_id;
-	return v_name;
-end;' language 'plpgsql';
-
-
--------------------------------------------------------------
--- Department View
--- (for compatibility reasons)
-create or replace view im_departments as
-select 
-	cost_center_id as department_id,
-	cost_center_name as department
-from
-	im_cost_centers
-where
-	department_p = 't';
-
-
-
--------------------------------------------------------------
--- Setup the cost_centers of a small consulting company that
--- offers strategic and IT projects, both following a fixed 
--- methodology (number project phases).
-
-
--- Creating sample cost center configuration
-delete from im_cost_centers;
-create or replace function inline_0 ()
-returns integer as '
-declare
-	v_the_company_center		integer;
-	v_administrative_center		integer;
-	v_utilities_center		integer;
-	v_marketing_center		integer;
-	v_sales_center			integer;
-	v_it_center			integer;
-	v_projects_center		integer;
-begin
-
-	-- -----------------------------------------------------
-	-- Main Center
-	-- -----------------------------------------------------
-
-	-- The Company itself: Profit Center (3002) with status "Active" (3101)
-	-- This should be the only center with parent=null...
-	v_the_company_center := im_cost_center__new (
-		null,			-- cost_centee_id
-		''im_cost_center'',	-- object_type
-		now(),			-- creation_date
-		null,			-- creation_user
-		null,			-- creation_ip
-		null,			-- context_id
-		''The Company'',	-- cost_center_name
-		''company'',		-- cost_center_label
-		''Co'',			-- cost_center_code
-		3002,			-- type_id
-		3101,			-- status_id
-		null,			-- parent_id
-		null,			-- manager_id
-		''f'',			-- department_p
-		''The top level center of the company'',	-- description
-		''''			-- note
-	);
-
-	-- -----------------------------------------------------
-	-- Sub Centers
-	-- -----------------------------------------------------
-
-	-- The Administrative Dept.: A typical cost center (3001)
-	-- We asume a small company, so there is only one manager 
-	-- taking budget control of Finance, Accounting, Legal and 
-	-- HR stuff.
-	--
-	v_administrative_center := im_cost_center__new (
-		null,			-- cost_centee_id
-		''im_cost_center'',	-- object_type
-		now(),			-- creation_date
-		null,			-- creation_user
-		null,			-- creation_ip
-		null,			-- context_id
-		''Administration'',	-- cost_center_name
-		''admin'',		-- cost_center_label
-		''CoAd'',		-- cost_center_code
-		3001,			-- type_id
-		3101,			-- status_id
-		v_the_company_center,	-- parent_id
-		null,			-- manager_id
-		''t'',			-- department_p
-		''Administration Cervice Center'', -- description
-		''''			-- note
-	);
-
-	-- Utilities Cost Center (3001)
-	--
-	v_utilities_center := im_cost_center__new (
-		null,			-- cost_centee_id
-		''im_cost_center'',	-- object_type
-		now(),			-- creation_date
-		null,			-- creation_user
-		null,			-- creation_ip
-		null,			-- context_id
-		''Rent and Utilities'',	-- cost_center_name
-		''utilities'',		-- cost_center_label
-		''CoUt'',		-- cost_center_code
-		3001,			-- type_id
-		3101,			-- status_id
-		v_the_company_center,	-- parent_id
-		null,			-- manager_id
-		''f'',			-- department_p
-		''Covers all repetitive costs such as rent, telephone, internet connectivity, ...'', -- description
-		''''			-- note
-	);
-
-	-- Sales Cost Center (3001)
-	--
-	v_sales_center := im_cost_center__new (
-		null,			-- cost_centee_id
-		''im_cost_center'',	-- object_type
-		now(),			-- creation_date
-		null,			-- creation_user
-		null,			-- creation_ip
-		null,			-- context_id
-		''Sales'',		-- cost_center_name
-		''sales'',		-- cost_center_label
-		''CoSa'',		-- cost_center_code
-		3001,			-- type_id
-		3101,			-- status_id
-		v_the_company_center,	-- parent_id
-		null,			-- manager_id
-		''t'',			-- department_p
-		''Records all sales related activities, as oposed to marketing.'', -- description
-		''''			-- note
-	);
-
-	-- Marketing Cost Center (3001)
-	--
-	v_marketing_center := im_cost_center__new (
-		null,			-- cost_centee_id
-		''im_cost_center'',	-- object_type
-		now(),			-- creation_date
-		null,			-- creation_user
-		null,			-- creation_ip
-		null,			-- context_id
-		''Marketing'',		-- cost_center_name
-		''marketing'',		-- cost_center_label
-		''CoMa'',		-- cost_center_code
-		3001,			-- type_id
-		3101,			-- status_id
-		v_the_company_center,	-- parent_id
-		null,			-- manager_id
-		''t'',			-- department_p
-		''Marketing activities, such as website, promo material, ...'', -- description
-		''''			-- note
-	);
-
-	-- Project Operations Cost Center (3001)
-	--
-	v_projects_center := im_cost_center__new (
-	null,			-- cost_centee_id
-		''im_cost_center'',	-- object_type
-		now(),			-- creation_date
-		null,			-- creation_user
-		null,			-- creation_ip
-		null,			-- context_id
-		''Operations'',		-- cost_center_name
-		''operations'',		-- cost_center_label
-		''CoOp'',		-- cost_center_code
-		3001,			-- type_id
-		3101,			-- status_id
-		v_the_company_center,	-- parent_id
-		null,			-- manager_id
-		''t'',			-- department_p
-		''Covers all phases of project-oriented execution activities..'', -- description
-		''''			-- note
-	);
-	return 0;
-end;' language 'plpgsql';
-select inline_0 ();
-drop function inline_0 ();
-
-
-
--------------------------------------------------------------
--- Update the context_id field of the "Co - The Company"
--- so that permissions are inherited from SubSite
---
-create or replace function inline_0 ()
-returns integer as '
-DECLARE
-	v_subsite_id		integer;
-BEGIN
-	-- Get the Main Site id, used as the global identified for permissions
-	select package_id into v_subsite_id from apm_packages
-	where package_key=''acs-subsite'';
-
-	update acs_objects
-		set context_id = v_subsite_id
-	where object_id in (
-			select cost_center_id
-			from im_cost_centers
-			where cost_center_label=''company''
-		);
-
-	return 0;
-end;' language 'plpgsql';
-select inline_0();
-drop function inline_0();
-
-
-
--------------------------------------------------------------
--- Update the context_id fields of the cost centers,
--- so that permissions are inherited
---
-create or replace function inline_0 ()
-returns integer as '
-DECLARE
-    row                         RECORD;
-BEGIN
-    FOR row IN
-        select  *
-        from    im_cost_centers
-    LOOP
-        RAISE NOTICE ''inline_0: cc_id=%'', row.cost_center_id;
-
-        update acs_objects
-        set context_id = row.parent_id
-        where object_id = row.cost_center_id;
-
-    END LOOP;
-    return 0;
-
-END;' language 'plpgsql';
-select inline_0 ();
-drop function inline_0();
-
-
-
-
--------------------------------------------------------------
--- Price List
---
--- Several objects expose a changing price over time,
--- such as employees (salary), rent, aDSL line etc.
--- However, we don't want to modify the price for
--- every month when generating monthly costs,
--- so it may be better to record the changing price
--- over time.
--- This object determines the price for an object
--- based on a start_date - end_date range.
--- End_date is kind of redundant, because it could
--- be deduced from the start_date of the next cost,
--- but that way we would need a max(...) query to
--- determine a current price which might be very slow.
---
-create table im_prices (
-	object_id		integer
-				constraint im_prices_object_fk
-				references acs_objects,
-	attribute		text
-				constraint im_prices_attribute_nn
-				not null,
-	start_date		timestamptz,
-	end_date		timestamptz default '2099-12-31',
-	amount			numeric(12,3),
-	currency		char(3)
-				constraint im_prices_currency_fk
-				references currency_codes(iso),
-		primary key (object_id, attribute, currency)
-);
-
-alter table im_prices
-add constraint im_prices_start_end_ck
-check(start_date < end_date);
 
 
 -------------------------------------------------------------
@@ -743,28 +43,18 @@ check(start_date < end_date);
 -- company in the case of travel costs.
 --
 
--- prompt *** intranet-costs: Creating im_costs
-create or replace function inline_0 ()
-returns integer as '
-declare
-	v_object_type	integer;
-begin
-	v_object_type := acs_object_type__create_type (
-		''im_cost'',		-- object_type
-		''Cost'',		-- pretty_name
-		''Costs'',		-- pretty_plural
-		''acs_object'',		-- supertype
-		''im_costs'',		-- table_name
-		''cost_id'',		-- id_column
-		''im_costs'',		-- package_name
-		''f'',			-- abstract_p
-		null,			-- type_extension_table
-		''im_cost__name''	-- name_method
-	);
-	return 0;
-end;' language 'plpgsql';
-select inline_0 ();
-drop function inline_0 ();
+SELECT acs_object_type__create_type (
+	'im_cost',		-- object_type
+	'Cost',			-- pretty_name
+	'Costs',		-- pretty_plural
+	'acs_object',		-- supertype
+	'im_costs',		-- table_name
+	'cost_id',		-- id_column
+	'im_costs',		-- package_name
+	'f',			-- abstract_p
+	null,			-- type_extension_table
+	'im_cost__name'		-- name_method
+);
 
 insert into acs_object_type_tables (object_type,table_name,id_column)
 values ('im_cost', 'im_costs', 'cost_id');
@@ -777,12 +67,12 @@ insert into im_biz_object_urls (object_type, url_type, url) values (
 insert into im_biz_object_urls (object_type, url_type, url) values (
 'im_cost','edit','/intranet-cost/costs/new?form_mode=edit\&cost_id=');
 
+
 update acs_object_types set
 	status_type_table = 'im_costs',
 	status_column = 'cost_status_id',
 	type_column = 'cost_type_id'
 where object_type = 'im_cost';
-
 
 
 
@@ -910,14 +200,33 @@ create index im_costs_cause_object_idx on im_costs(cause_object_id);
 create index im_costs_start_block_idx on im_costs(start_block);
 
 
+alter table im_projects add column cost_quotes_cache		numeric(12,2) default 0;
+alter table im_projects add column cost_invoices_cache		numeric(12,2) default 0;
+alter table im_projects add column cost_timesheet_planned_cache	numeric(12,2) default 0;
+alter table im_projects add column cost_purchase_orders_cache	numeric(12,2) default 0;
+alter table im_projects add column cost_bills_cache		numeric(12,2) default 0;
+alter table im_projects add column cost_timesheet_logged_cache	numeric(12,2) default 0;
+alter table im_projects add column cost_delivery_notes_cache	numeric(12,2) default 0;
+alter table im_projects add column cost_expense_planned_cache	numeric(12,2) default 0;
+alter table im_projects add column cost_expense_logged_cache	numeric(12,2) default 0;
+alter table im_projects add column reported_hours_cache		numeric(12,2) default 0;
+alter table im_projects add column reported_days_cache		numeric(12,2) default 0;
+alter table im_projects add column cost_cache_dirty		timestamptz;
+
 
 
 -------------------------------------------------------------
--- Cost Object Packages
+-- Create cost sub-types
 --
 
--- create or replace package body im_cost
--- is
+\i intranet-repeating-cost-create.sql
+\i intranet-investment-create.sql
+
+
+
+-------------------------------------------------------------
+-- Cost Functions
+
 create or replace function im_cost__new (
 	integer, varchar, timestamptz, integer,	varchar, integer,
 	varchar, integer, integer, integer, integer, integer, integer,
@@ -925,10 +234,10 @@ create or replace function im_cost__new (
 	varchar, numeric, numeric, varchar, varchar, varchar, varchar,
 	integer, varchar, varchar
 )
-returns integer as '
+returns integer as $$
 declare
 	p_cost_id		alias for $1;		-- cost_id default null
-	p_object_type		alias for $2;		-- object_type default ''im_cost''
+	p_object_type		alias for $2;		-- object_type default 'im_cost'
 	p_creation_date		alias for $3;		-- creation_date default now()
 	p_creation_user		alias for $4;		-- creation_user default null
 	p_creation_ip		alias for $5;		-- creation_ip default null
@@ -948,14 +257,14 @@ declare
 	p_effective_date	alias for $16;		-- effective_date default now()
 	p_payment_days		alias for $17;		-- payment_days default 30
 	p_amount		alias for $18;		-- amount default null
-	p_currency		alias for $19;		-- currency default ''EUR''
+	p_currency		alias for $19;		-- currency default 'EUR'
 	p_vat			alias for $20;		-- vat default 0
 	p_tax			alias for $21;		-- tax default 0
 
-	p_variable_cost_p	alias for $22;		-- variable_cost_p default ''f''
-	p_needs_redistribution_p alias for $23;		-- needs_redistribution_p default ''f''
-	p_redistributed_p	alias for $24;		-- redistributed_p default ''f''
-	p_planning_p		alias for $25;		-- planning_p default ''f''
+	p_variable_cost_p	alias for $22;		-- variable_cost_p default 'f'
+	p_needs_redistribution_p alias for $23;		-- needs_redistribution_p default 'f'
+	p_redistributed_p	alias for $24;		-- redistributed_p default 'f'
+	p_planning_p		alias for $25;		-- planning_p default 'f'
 	p_planning_type_id	alias for $26;		-- planning_type_id default null
 
 	p_note			alias for $27;		-- note default null
@@ -969,7 +278,7 @@ declare
 		p_creation_user,		-- creation_user
 		p_creation_ip,			-- creation_ip
 		p_context_id,			-- context_id
-		''t''				-- security_inherit_p
+		't'				-- security_inherit_p
 	);
 
 	insert into im_costs (
@@ -997,12 +306,12 @@ declare
 	);
 
 	return v_cost_cost_id;
-end' language 'plpgsql';
+end;$$ language 'plpgsql';
 
 
 -- Delete a single cost (if we know its ID...)
 create or replace function im_cost__delete (integer)
-returns integer as '
+returns integer as $$
 DECLARE
 	p_cost_id alias for $1;
 begin
@@ -1028,11 +337,11 @@ begin
 	-- Erase the object
 	PERFORM acs_object__delete(p_cost_id);
 	return 0;
-end' language 'plpgsql';
+end;$$ language 'plpgsql';
 
 
 create or replace function im_cost__name (integer)
-returns varchar as '
+returns varchar as $$
 DECLARE
 	p_cost_id	alias for $1;	-- cost_id
 	v_name		varchar;
@@ -1041,14 +350,13 @@ begin
 	where	cost_id = p_cost_id;
 
 	return v_name;
-end;' language 'plpgsql';
+end;$$ language 'plpgsql';
 
 
 
 -- Creating status and type views
 create or replace view im_cost_status as
-select
-	category_id as cost_status_id,
+select	category_id as cost_status_id,
 	category as cost_status
 from 	im_categories
 where	category_type = 'Intranet Cost Status' and
@@ -1110,10 +418,9 @@ where 	category_type = 'Intranet Cost Type';
 -------------------------------------------------------------
 
 create or replace function im_cost_project_cache_invalidator (integer)
-returns integer as '
+returns integer as $$
 declare
 	p_project_id	alias for $1;
-
 	v_project_id	integer;
 	v_count		integer;
 	v_parent_id	integer;
@@ -1135,7 +442,7 @@ begin
 		IF v_last_dirty is not null THEN return v_count; END IF;
 
 		-- Set the "dirty"-flag. There is a sweeper to cleanup afterwards.
-		RAISE NOTICE ''im_cost_project_cache_invalidator: invalidating cost cache of project %'', p_project_id;
+		RAISE NOTICE 'im_cost_project_cache_invalidator: invalidating cost cache of project %', p_project_id;
 		update im_projects
 		set cost_cache_dirty = now()
 		where project_id = v_project_id;
@@ -1148,7 +455,7 @@ begin
 	END LOOP;
 
 	return v_count;
-end;' language 'plpgsql';
+end;$$ language 'plpgsql';
 
 
 
@@ -1158,13 +465,13 @@ end;' language 'plpgsql';
 
 
 create or replace function im_cost_project_cache_up_tr ()
-returns trigger as '
+returns trigger as $$
 begin
-	RAISE NOTICE ''im_cost_project_cache_up_tr: %'', new.cost_id;
+	RAISE NOTICE 'im_cost_project_cache_up_tr: %', new.cost_id;
 	PERFORM im_cost_project_cache_invalidator (old.project_id);
 	PERFORM im_cost_project_cache_invalidator (new.project_id);
 	return new;
-end;' language 'plpgsql';
+end;$$ language 'plpgsql';
 
 CREATE TRIGGER im_costs_project_cache_up_tr
 AFTER UPDATE
@@ -1178,12 +485,12 @@ EXECUTE PROCEDURE im_cost_project_cache_up_tr();
 -- Costs Insert Trigger
 
 create or replace function im_cost_project_cache_ins_tr ()
-returns trigger as '
+returns trigger as $$
 begin
-	RAISE NOTICE ''im_cost_project_cache_ins_tr: %'', new.cost_id;
+	RAISE NOTICE 'im_cost_project_cache_ins_tr: %', new.cost_id;
 	PERFORM im_cost_project_cache_invalidator (new.project_id);
 	return new;
-end;' language 'plpgsql';
+end;$$ language 'plpgsql';
 
 CREATE TRIGGER im_costs_project_cache_ins_tr
 AFTER INSERT
@@ -1196,12 +503,12 @@ EXECUTE PROCEDURE im_cost_project_cache_ins_tr();
 -- Costs Delete Trigger
 
 create or replace function im_cost_project_cache_del_tr ()
-returns trigger as '
+returns trigger as $$
 begin
-	RAISE NOTICE ''im_cost_project_cache_del_tr: %'', old.cost_id;
+	RAISE NOTICE 'im_cost_project_cache_del_tr: %', old.cost_id;
 	PERFORM im_cost_project_cache_invalidator (old.project_id);
 	return new;
-end;' language 'plpgsql';
+end;$$ language 'plpgsql';
 
 CREATE TRIGGER im_costs_project_cache_del_tr
 AFTER DELETE
@@ -1223,9 +530,9 @@ EXECUTE PROCEDURE im_cost_project_cache_del_tr();
 -- Project Update Trigger
 
 create or replace function im_project_project_cache_up_tr ()
-returns trigger as '
+returns trigger as $$
 begin
-	RAISE NOTICE ''im_project_project_cache_up_tr: %'', new.project_id;
+	RAISE NOTICE 'im_project_project_cache_up_tr: %', new.project_id;
 
 	IF new.parent_id != old.parent_id THEN
 		PERFORM im_cost_project_cache_invalidator (old.parent_id);
@@ -1240,7 +547,7 @@ begin
 		PERFORM im_cost_project_cache_invalidator (new.parent_id);
 	END IF;
 	return new;
-end;' language 'plpgsql';
+end;$$ language 'plpgsql';
 
 CREATE TRIGGER im_projects_project_cache_up_tr
 AFTER UPDATE
@@ -1256,7 +563,7 @@ EXECUTE PROCEDURE im_project_project_cache_up_tr();
 --
 
 create or replace function im_cost_vat_type_from_cost_id (integer)
-returns varchar as '
+returns varchar as $$
 declare
 	p_cost_id			alias for $1;
 
@@ -1279,7 +586,7 @@ begin
 	SELECT
 		c.cost_type_id,
 		im_category_from_id(c.cost_type_id),
-		trim(to_char(coalesce(c.vat,0), ''999.9''), ''0. ''),
+		trim(to_char(coalesce(c.vat,0), '999.9'), '0. '),
 		(select o.address_country_code from im_offices o where o.office_id = cust.main_office_id),
 		(select o.address_country_code from im_offices o where o.office_id = prov.main_office_id)
 	INTO
@@ -1298,16 +605,16 @@ begin
 		c.provider_id = prov.company_id;
 
 	-- Make sure we get a reasonable number after the trim() operation...
-	IF '''' = v_vat_string THEN v_vat_string = ''0''; END IF;
+	IF '' = v_vat_string THEN v_vat_string = '0'; END IF;
 
 	-- Determine the country_code of the internal company.
 	SELECT	(select address_country_code from im_offices where office_id = c.main_office_id)
 	INTO	v_internal_country_code
 	from	im_companies c
-	where	c.company_path = ''internal'';
+	where	c.company_path = 'internal';
 
 	IF v_cost_type_id not in (3700,3702,3704,3706,3720,3724,3730,3732) THEN
-		return ''invalid cost type: '' || v_cost_type;
+		return 'invalid cost type: ' || v_cost_type;
 	END IF;
 
 	-- check customer characteristics
@@ -1315,16 +622,16 @@ begin
 		THEN v_customer_spain_p := 1;
 		ELSE v_customer_spain_p := 0;
 	END IF;
-	RAISE NOTICE ''im_cost_vat_type_from_cost_id: v_customer_spain_p=%'', v_customer_spain_p;
+	RAISE NOTICE 'im_cost_vat_type_from_cost_id: v_customer_spain_p=%', v_customer_spain_p;
 	IF v_customer_country_code in (
-			''ad'', ''at'', ''be'', ''bg'', ''cy'', ''cz'', ''de'', ''dk'', 
-			''ee'', ''es'', ''fi'', ''fr'', ''gr'', ''hr'', ''hu'', ''ie'', 
-			''it'', ''li'', ''lu'', ''mt'', ''nl'', ''no'', ''pl'', ''pt'', 
-			''ro'', ''se'', ''si'', ''sk'', ''uk'') 
+			'ad', 'at', 'be', 'bg', 'cy', 'cz', 'de', 'dk', 
+			'ee', 'es', 'fi', 'fr', 'gr', 'hr', 'hu', 'ie', 
+			'it', 'li', 'lu', 'mt', 'nl', 'no', 'pl', 'pt', 
+			'ro', 'se', 'si', 'sk', 'uk') 
 		THEN v_customer_eu_p := 1;
 		ELSE v_customer_eu_p := 0;
 	END IF;
-	RAISE NOTICE ''im_cost_vat_type_from_cost_id: v_customer_eu_p=%'', v_customer_eu_p;
+	RAISE NOTICE 'im_cost_vat_type_from_cost_id: v_customer_eu_p=%', v_customer_eu_p;
 
 
 	-- check provider characteristics
@@ -1332,37 +639,37 @@ begin
 		THEN v_provider_spain_p := 1;
 		ELSE v_provider_spain_p := 0;
 	END IF;
-	RAISE NOTICE ''im_cost_vat_type_from_cost_id: v_provider_spain_p=%'', v_provider_spain_p;
+	RAISE NOTICE 'im_cost_vat_type_from_cost_id: v_provider_spain_p=%', v_provider_spain_p;
 	IF v_provider_country_code in (
-			''ad'', ''at'', ''be'', ''bg'', ''cy'', ''cz'', ''de'', ''dk'', 
-			''ee'', ''es'', ''fi'', ''fr'', ''gr'', ''hr'', ''hu'', ''ie'', 
-			''it'', ''li'', ''lu'', ''mt'', ''nl'', ''no'', ''pl'', ''pt'', 
-			''ro'', ''se'', ''si'', ''sk'', ''uk'') 
+			'ad', 'at', 'be', 'bg', 'cy', 'cz', 'de', 'dk', 
+			'ee', 'es', 'fi', 'fr', 'gr', 'hr', 'hu', 'ie', 
+			'it', 'li', 'lu', 'mt', 'nl', 'no', 'pl', 'pt', 
+			'ro', 'se', 'si', 'sk', 'uk') 
 		THEN v_provider_eu_p := 1;
 		ELSE v_provider_eu_p := 0;
 	END IF;
-	RAISE NOTICE ''im_cost_vat_type_from_cost_id: v_provider_eu_p=%'', v_provider_eu_p;
+	RAISE NOTICE 'im_cost_vat_type_from_cost_id: v_provider_eu_p=%', v_provider_eu_p;
 
 	IF v_cost_type_id in (3700,3702,3730,3732)
 		THEN v_cost_is_invoice_or_quote_p := 1;
 		ELSE v_cost_is_invoice_or_quote_p := 0;
 	END IF;
-	RAISE NOTICE ''im_cost_vat_type_from_cost_id: v_cost_is_invoice_or_quote_p=%'', v_cost_is_invoice_or_quote_p;
+	RAISE NOTICE 'im_cost_vat_type_from_cost_id: v_cost_is_invoice_or_quote_p=%', v_cost_is_invoice_or_quote_p;
 	
 	IF v_cost_is_invoice_or_quote_p > 0 THEN
-		v_vat_type := ''Intl'';
-		IF v_customer_eu_p THEN v_vat_type = ''EU''; END IF;
-		IF v_customer_spain_p THEN v_vat_type = ''Domestic''; END IF;
-		v_vat_type := v_vat_type || '' '' || v_vat_string || ''%'';
+		v_vat_type := 'Intl';
+		IF v_customer_eu_p THEN v_vat_type = 'EU'; END IF;
+		IF v_customer_spain_p THEN v_vat_type = 'Domestic'; END IF;
+		v_vat_type := v_vat_type || ' ' || v_vat_string || '%';
 	ELSE
-		v_vat_type := ''Intl'';
-		IF v_provider_eu_p THEN v_vat_type = ''EU''; END IF;
-		IF v_provider_spain_p THEN v_vat_type = ''Domestic''; END IF;
-		v_vat_type := v_vat_type || '' '' || v_vat_string || ''%'';
+		v_vat_type := 'Intl';
+		IF v_provider_eu_p THEN v_vat_type = 'EU'; END IF;
+		IF v_provider_spain_p THEN v_vat_type = 'Domestic'; END IF;
+		v_vat_type := v_vat_type || ' ' || v_vat_string || '%';
 	END IF;
 
         return v_vat_type;
-end;' language 'plpgsql';
+end;$$ language 'plpgsql';
 
 
 
@@ -1372,192 +679,13 @@ end;' language 'plpgsql';
 --
 
 create or replace function im_cost_del (integer) 
-returns integer as '
+returns integer as $$
 declare
 	p_cost_id alias for $1;
 begin
 	PERFORM im_cost__delete(p_cost_id);
 	return 0;
-end;' language 'plpgsql';
-
-
--------------------------------------------------------------
--- Repeating Costs
---
--- These items generate a new cost every month that they
--- are active.
--- This item is used for diverse types of repeating costs
--- such as employees salaries, rent and utilities costs and
--- investment amortization, so it is kind of "aggregated"
--- to those objects.
---
--- Repeating Costs are a subtype of im_costs. However, we 
--- have to add the constraint later because im_costs 
--- depend on im_investment and im_investment depends on 
--- repeating_costs.
---
--- im_costs.cause_object_id contains the reference to the
--- business object that causes the repetitive cost.
-
-create or replace function inline_0 ()
-returns integer as '
-declare
-	v_object_type	integer;
-begin
-	v_object_type := acs_object_type__create_type (
-		''im_repeating_cost'',		-- object_type
-		''Repeating Cost'',		-- pretty_name
-		''Repeating Cost'',		-- pretty_plural
-		''im_cost'',			-- supertype
-		''im_repeating_costs'',		-- table_name
-		''rep_cost_id'',		-- id_column
-		''im_repeating_cost'',		-- package_name
-		''f'',				-- abstract_p
-		null,				-- type_extension_table
-		''im_repeating_cost__name''	-- name_method
-	);
-	return 0;
-end;' language 'plpgsql';
-select inline_0 ();
-drop function inline_0 ();
-
-insert into acs_object_type_tables (object_type,table_name,id_column)
-values ('im_repeating_cost', 'im_repeating_costs', 'rep_cost_id');
-insert into acs_object_type_tables (object_type,table_name,id_column)
-values ('im_repeating_cost', 'im_costs', 'cost_id');
-
-
-update acs_object_types set
-	status_type_table = 'im_costs',
-	status_column = 'cost_status_id',
-	type_column = 'cost_type_id'
-where object_type = 'im_repeating_cost';
-
-
-
--- prompt *** intranet-costs: Creating im_repeating_costs
-create table im_repeating_costs (
-	rep_cost_id		integer
-				constraint im_rep_costs_id_pk
-				primary key
-				constraint im_rep_costs_id_fk
-				references im_costs,
-	start_date		timestamptz 
-				constraint im_rep_costs_start_date_nn
-				not null,
-	end_date		timestamptz default '2099-12-31'
-				constraint im_rep_costs_end_date_nn
-				not null,
-		constraint im_rep_costs_start_end_date
-		check(start_date <= end_date)
-);
-
-
--- Delete a single cost (if we know its ID...)
-create or replace function im_repeating_cost__delete (integer)
-returns integer as '
-DECLARE
-	p_cost_id alias for $1;
-begin
-	-- Erase the im_repeating_costs entry
-	delete from im_repeating_costs
-	where rep_cost_id = p_cost_id;
-
-	-- Erase the object
-	PERFORM im_cost__delete(p_cost_id);
-	return 0;
-end' language 'plpgsql';
-
-
-create or replace function im_repeating_cost__name (integer)
-returns varchar as '
-DECLARE
-	p_cost_id	alias for $1;	-- cost_id
-	v_name		varchar;
-begin
-	select	cost_name into v_name from im_costs
-	where	cost_id = p_cost_id;
-
-	return v_name;
-end;' language 'plpgsql';
-
-
-
-
--------------------------------------------------------------
--- "Investments"
---
--- Investments are purchases of larger "investment items"
--- that are not treated as a cost item immediately.
--- Instead, investments are "amortized" over time
--- (monthly, quarterly or yearly) until their non-amortized
--- valeu is zero. A new cost item cost items is generated for 
--- every amortization interval.
---
--- The amortized amount of costs is calculated by summing up
--- all im_costs with the specific investment_id
---
-
--- prompt *** intranet-costs: Creating im_investments
-create table im_investments (
-	investment_id		integer
-				constraint im_investments_pk
-				primary key
-				constraint im_investments_fk
-				references im_repeating_costs,
-	name			text,
-	investment_status_id	integer
-				constraint im_investments_status_fk
-				references im_categories,
-	investment_type_id	integer
-				constraint im_investments_type_fk
-				references im_categories
-);
-
-
--- prompt *** intranet-costs: Creating im_cost packages
-create or replace function inline_0 ()
-returns integer as '
-declare
-	v_object_type	integer;
-begin
-	v_object_type := acs_object_type__create_type (
-		''im_investment'',	-- object_type
-		''Investment'',		-- pretty_name
-		''Investments'',	-- pretty_plural
-		''im_repeating_cost'',	-- supertype	
-		''im_investments'',	-- table_name
-		''investment_id'',	-- id_column
-		''im_investment'',	-- package_name
-		''f'',			-- abstract_p
-		null,			-- type_extension_table
-		''im_investment__name'' -- name_method
-	);
-	return 0;
-end;' language 'plpgsql';
-select inline_0 ();
-drop function inline_0 ();
-
-insert into acs_object_type_tables (object_type,table_name,id_column)
-values ('im_investment', 'im_investments', 'investment_id');
-insert into acs_object_type_tables (object_type,table_name,id_column)
-values ('im_investment', 'im_repeating_costs', 'rep_cost_id');
-insert into acs_object_type_tables (object_type,table_name,id_column)
-values ('im_investment', 'im_costs', 'cost_id');
-
-
--- Creating URLs for viewing/editing investments
-delete from im_biz_object_urls where object_type='im_investment';
-insert into im_biz_object_urls (object_type, url_type, url) values (
-'im_investment','view','/intranet-cost/investments/new?form_mode=display\&investment_id=');
-insert into im_biz_object_urls (object_type, url_type, url) values (
-'im_investment','edit','/intranet-cost/investments/new?form_mode=edit\&investment_id=');
-
-update acs_object_types set
-	status_type_table = 'im_costs',
-	status_column = 'cost_status_id',
-	type_column = 'cost_type_id'
-where object_type = 'im_investment';
+end;$$ language 'plpgsql';
 
 
 
@@ -1623,428 +751,13 @@ where	category_type = 'Intranet VAT Type';
 
 
 
--------------------------------------------------------------
--- Finance Menu System
---
-
--- prompt *** intranet-costs: Create Finance Menu
--- Setup the "Finance" main menu entry
---
-create or replace function inline_0 ()
-returns integer as '
-declare
-	-- Menu IDs
-	v_menu			integer;
-	v_main_menu 		integer;
-	v_finance_menu		integer;
-
-	-- Groups
-	v_employees		integer;
-	v_accounting		integer;
-	v_senman		integer;
-	v_customers		integer;
-	v_freelancers		integer;
-	v_proman		integer;
-	v_admins		integer;
-begin
-
-	select group_id into v_admins from groups where group_name = ''P/O Admins'';
-	select group_id into v_senman from groups where group_name = ''Senior Managers'';
-	select group_id into v_accounting from groups where group_name = ''Accounting'';
-	select group_id into v_customers from groups where group_name = ''Customers'';
-	select group_id into v_freelancers from groups where group_name = ''Freelancers'';
-
-	select menu_id
-	into v_main_menu
-	from im_menus
-	where label=''main'';
-
-	v_finance_menu := im_menu__new (
-		null,				-- menu_id
-		''im_menu'',			-- object_type
-		now(),				-- creation_date
-		null,				-- creation_user
-		null,				-- creation_ip
-		null,				-- context_id
-		''intranet-cost'',		-- package_name
-		''finance'',			-- label
-		''Finance'',			-- name
-		''/intranet-invoices/list'',	-- url
-		80,				-- sort_order
-		v_main_menu,			-- parent_menu_id
-		null				-- visible_tcl
-	);
-
-	PERFORM acs_permission__grant_permission(v_finance_menu, v_admins, ''read'');
-	PERFORM acs_permission__grant_permission(v_finance_menu, v_senman, ''read'');
-	PERFORM acs_permission__grant_permission(v_finance_menu, v_accounting, ''read'');
-
---	PERFORM acs_permission__grant_permission(v_finance_menu, v_customers, ''read'');
---	PERFORM acs_permission__grant_permission(v_finance_menu, v_freelancers, ''read'');
-
-	-- -----------------------------------------------------
-	-- General Costs
-	-- -----------------------------------------------------
-
-	v_menu := im_menu__new (
-		null,				-- menu_id
-		''im_menu'',			-- object_type
-		now(),				-- creation_date
-		null,				-- creation_user
-		null,				-- creation_ip
-		null,				-- context_id
-		''intranet-cost'',		-- package_name
-		''costs_home'',			-- label
-		''Finance Home'',		-- name
-		''/intranet-cost/index'',	-- url
-		10,				-- sort_order
-		v_finance_menu,			-- parent_menu_id
-		null				-- visible_tcl
-	);
-	PERFORM acs_permission__grant_permission(v_menu, v_admins, ''read'');
-	PERFORM acs_permission__grant_permission(v_menu, v_senman, ''read'');
-	PERFORM acs_permission__grant_permission(v_menu, v_accounting, ''read'');
-
-	v_menu := im_menu__new (
-		null,				-- menu_id
-		''im_menu'',			-- object_type
-		now(),				-- creation_date
-		null,				-- creation_user
-		null,				-- creation_ip
-		null,				-- context_id
-		''intranet-cost'',		-- package_name
-		''costs'',			-- label
-		''All Costs'',			-- name
-		''/intranet-cost/list'',	-- url
-		80,				-- sort_order
-		v_finance_menu,			-- parent_menu_id
-		null				-- visible_tcl
-	);
-	PERFORM acs_permission__grant_permission(v_menu, v_admins, ''read'');
-	PERFORM acs_permission__grant_permission(v_menu, v_senman, ''read'');
-	PERFORM acs_permission__grant_permission(v_menu, v_accounting, ''read'');
-
-	return 0;
-end;' language 'plpgsql';
-
-select inline_0 ();
-drop function inline_0 ();
-
-
--- Cost Center Menu as part of the Finance menu
---
-create or replace function inline_0 ()
-returns integer as '
-declare
-	-- Menu IDs
-	v_menu			integer;
-	v_finance_menu		integer;
-
-	-- Groups
-	v_employees		integer;
-	v_accounting		integer;
-	v_senman		integer;
-	v_customers		integer;
-	v_freelancers		integer;
-	v_proman		integer;
-	v_admins		integer;
-begin
-
-	select group_id into v_admins from groups where group_name = ''P/O Admins'';
-	select group_id into v_senman from groups where group_name = ''Senior Managers'';
-	select group_id into v_accounting from groups where group_name = ''Accounting'';
-	select group_id into v_customers from groups where group_name = ''Customers'';
-	select group_id into v_freelancers from groups where group_name = ''Freelancers'';
-
-	select menu_id
-	into v_finance_menu
-	from im_menus
-	where label=''finance'';
-
-	v_finance_menu := im_menu__new (
-		null,				-- menu_id
-		''im_menu'',			-- object_type
-		now(),				-- creation_date
-		null,				-- creation_user
-		null,				-- creation_ip
-		null,				-- context_id
-		''intranet-cost'',		-- package_name
-		''finance_cost_centers'',	-- label
-		''Cost Centers'',		-- name
-		''/intranet-cost/cost-centers/index'',		-- url
-		90,				-- sort_order
-		v_finance_menu,			-- parent_menu_id
-		null				-- visible_tcl
-	);
-
-	PERFORM acs_permission__grant_permission(v_finance_menu, v_admins, ''read'');
-	PERFORM acs_permission__grant_permission(v_finance_menu, v_senman, ''read'');
-	PERFORM acs_permission__grant_permission(v_finance_menu, v_accounting, ''read'');
---	PERFORM acs_permission__grant_permission(v_finance_menu, v_customers, ''read'');
---	PERFORM acs_permission__grant_permission(v_finance_menu, v_freelancers, ''read'');
-
-	return 0;
-end;' language 'plpgsql';
-
-select inline_0 ();
-drop function inline_0 ();
-
-
--- Setup the "New Cost" menu for /intranet-cost/index
---
-create or replace function inline_0 ()
-returns integer as '
-declare
-	-- Menu IDs
-	v_menu			integer;
-	v_invoices_new_menu	integer;
-	v_finance_menu		integer;
-
-	-- Groups
-	v_employees		integer;
-	v_accounting		integer;
-	v_senman		integer;
-	v_customers		integer;
-	v_freelancers		integer;
-	v_proman		integer;
-	v_admins		integer;
-begin
-	select group_id into v_admins from groups where group_name = ''P/O Admins'';
-	select group_id into v_senman from groups where group_name = ''Senior Managers'';
-	select group_id into v_accounting from groups where group_name = ''Accounting'';
-	select group_id into v_customers from groups where group_name = ''Customers'';
-	select group_id into v_freelancers from groups where group_name = ''Freelancers'';
-
-	select menu_id
-	into v_invoices_new_menu
-	from im_menus
-	where label=''costs'';
-
-	v_finance_menu := im_menu__new (
-		null,				-- menu_id
-		''im_menu'',			-- object_type
-		now(),				-- creation_date
-		null,				-- creation_user
-		null,				-- creation_ip
-		null,				-- context_id
-		''intranet-cost'',		-- package_name
-		''cost_new'',			-- label
-		''New Cost'',			-- name
-		''/intranet-cost/costs/new'',	-- url
-		10,				-- sort_order
-		v_invoices_new_menu,		-- parent_menu_id
-		null				-- visible_tcl
-	);
-
-	PERFORM acs_permission__grant_permission(v_finance_menu, v_admins, ''read'');
-	PERFORM acs_permission__grant_permission(v_finance_menu, v_senman, ''read'');
-	PERFORM acs_permission__grant_permission(v_finance_menu, v_accounting, ''read'');
-	return 0;
-end;' language 'plpgsql';
-
-select inline_0 ();
-
-drop function inline_0 ();
-
--- Repeating Costs Menu
-create or replace function inline_0 ()
-returns integer as'
-declare
-	-- Menu IDs
-	v_menu			integer;
-	v_finance_menu		integer;
-
-	-- Groups
-	v_employees		integer;
-	v_accounting		integer;
-	v_senman		integer;
-	v_customers		integer;
-	v_freelancers		integer;
-	v_proman		integer;
-	v_admins		integer;
-begin
-	select group_id into v_admins from groups where group_name = ''P/O Admins'';
-	select group_id into v_senman from groups where group_name = ''Senior Managers'';
-	select group_id into v_accounting from groups where group_name = ''Accounting'';
-	select group_id into v_customers from groups where group_name = ''Customers'';
-	select group_id into v_freelancers from groups where group_name = ''Freelancers'';
-
-	select menu_id into v_finance_menu from im_menus
-	where label=''finance'';
-
-	v_menu := im_menu__new (
-		null,				-- menu_id
-		''im_menu'',			-- object_type
-		now(),				-- creation_date
-		null,				-- creation_user
-		null,				-- creation_ip
-		null,				-- context_id
-		''intranet-cost'',		-- package_name
-		''costs_rep'',			-- label
-		''Repeating Costs'',		-- name
-		''/intranet-cost/rep-costs/'',	-- url
-		90,				-- sort_order
-		v_finance_menu,			-- parent_menu_id
-		null				-- visible_tcl
-	);
-
-	PERFORM acs_permission__grant_permission(v_menu, v_admins, ''read'');
-	PERFORM acs_permission__grant_permission(v_menu, v_senman, ''read'');
-	PERFORM acs_permission__grant_permission(v_menu, v_accounting, ''read'');
-	PERFORM acs_permission__grant_permission(v_menu, v_customers, ''read'');
-	PERFORM acs_permission__grant_permission(v_menu, v_freelancers, ''read'');
-	return 0;
-end;' language 'plpgsql';
-
--- 050324 fraber: Repeating costs disabled for V3.0.0
--- select inline_0 ();
-drop function inline_0 ();
-
-
-
-create or replace function inline_0 ()
-returns integer as'
-declare
-	-- Menu IDs
-	v_menu			integer;
-	v_project_menu		integer;
-
-	-- Groups
-	v_employees		integer;
-	v_accounting		integer;
-	v_senman		integer;
-	v_customers		integer;
-	v_freelancers		integer;
-	v_proman		integer;
-	v_admins		integer;
-begin
-	select group_id into v_admins from groups where group_name = ''P/O Admins'';
-	select group_id into v_senman from groups where group_name = ''Senior Managers'';
-	select group_id into v_accounting from groups where group_name = ''Accounting'';
-
-	select menu_id into v_project_menu from im_menus
-	where label=''project'';
-
-	v_menu := im_menu__new (
-		null,			-- p_menu_id
-		''im_menu'',		-- object_type
-		now(),			-- creation_date
-		null,			-- creation_user
-		null,			-- creation_ip
-		null,			-- context_id
-		''intranet-core'',	-- package_name
-		''project_finance'',	-- label
-		''Finance'',		-- name
-		''/intranet/projects/view?view_name=finance'',	-- url
-		20,			-- sort_order
-		v_project_menu,		-- parent_menu_id
-		null			-- p_visible_tcl
-	);
-
-	PERFORM acs_permission__grant_permission(v_menu, v_admins, ''read'');
-	PERFORM acs_permission__grant_permission(v_menu, v_senman, ''read'');
-	PERFORM acs_permission__grant_permission(v_menu, v_accounting, ''read'');
-
-	return 0;
-end;' language 'plpgsql';
-
-select inline_0 ();
-
-drop function inline_0 ();
-
-
-
--------------------------------------------------------------
--- Cost Components
---
-
-select im_component_plugin__del_module('intranet-cost');
-
--- Show the finance component in a projects "Finance" page
---
-select	im_component_plugin__new (
-	null,				-- plugin_id
-	'im_component_plugin',			-- object_type
-	now(),				-- creation_date
-	null,				-- creation_user
-	null,				-- creation_ip
-	null,				-- context_id
-
-	'Project Finance Component',	-- plugin_name
-	'intranet-cost',		-- package_name
-	'finance',			-- location
-	'/intranet/projects/view',	-- page_url
-	null,				-- view_name
-	50,				-- sort_order
-	'im_costs_project_finance_component $user_id $project_id'	-- component_tcl
-);
-
-
--- Show the finance component (summary view) in a projects "Summary" page
---
-select	im_component_plugin__new (
-	null,				-- plugin_id
-	'im_component_plugin',			-- object_type
-	now(),				-- creation_date
-	null,				-- creation_user
-	null,				-- creation_ip
-	null,				-- context_id
-
-	'Project Finance Summary Component',	-- plugin_name
-	'intranet-cost',		-- package_name
-	'left',				-- location
-	'/intranet/projects/view',	-- page_url
-	null,				-- view_name
-	80,				-- sort_order
-	'im_costs_project_finance_component -show_details_p 0 $user_id $project_id'	-- component_tcl
-);
-
-
-
--- Show the cost component in companies page
---
-select im_component_plugin__new (
-	null,				-- plugin_id
-	'im_component_plugin',			-- object_type
-	now(),				-- creation_date
-	null,				-- creation_user
-	null,				-- creation_ip
-	null,				-- context_id
-	'Company Cost Component',	-- plugin_name
-	'intranet-cost',		-- package_name
-	'left',				-- location
-	'/intranet/companies/view',	-- page_url
-	null,				-- view_name
-	90,				-- sort_order
-	'im_costs_company_component $user_id $company_id'	-- component_tcl
-);
-
-
--- Show profit and loss in companies page
---
-select im_component_plugin__new (
-	null,				-- plugin_id
-	'im_component_plugin',			-- object_type
-	now(),				-- creation_date
-	null,				-- creation_user
-	null,				-- creation_ip
-	null,				-- context_id
-	'Company Profit Component',	-- plugin_name
-	'intranet-cost',		-- package_name
-	'left',				-- location
-	'/intranet/companies/view',	-- page_url
-	null,				-- view_name
-	85,				-- sort_order
-	'im_costs_company_profit_loss_component -company_id $company_id'	-- component_tcl
-);
-
 
 -- ------------------------------------------------
 -- Return the final customer name for a cost item
 --
 
 create or replace function im_cost_get_final_customer_name(integer)
-returns varchar as '
+returns varchar as $$
 DECLARE
         v_cost_id       alias for $1;
         v_company_name  varchar;
@@ -2061,74 +774,13 @@ BEGIN
         	        )
 		);
         return v_company_name;
-END;' language 'plpgsql';
+END;$$ language 'plpgsql';
 
-
--------------------------------------------------------------
--- Helper functions to make our queries easier to read
--- and to avoid outer joins with parent projects etc.
-
--- Return the Cost Center code
-create or replace function im_dept_from_user_id(integer)
-returns varchar as '
-DECLARE
-	v_user_id	alias for $1;
-	v_dept		varchar;
-BEGIN
-	select	cost_center_code into v_dept
-	from	im_employees e,
-		im_cost_centers cc
-	where	e.employee_id = v_user_id
-		and e.department_id = cc.cost_center_id;
-
-	return v_dept;
-END;' language 'plpgsql';
-
-
-
--- Some helper functions to make our queries easier to read
-create or replace function im_cost_center_label_from_id (integer)
-returns varchar as '
-DECLARE
-	p_id	alias for $1;
-	v_name	varchar;
-BEGIN
-	select	cc.cost_center_label into v_name from im_cost_centers cc
-	where	cost_center_id = p_id;
-
-	return v_name;
-end;' language 'plpgsql';
-
-
-create or replace function im_cost_center_name_from_id (integer)
-returns varchar as '
-DECLARE
-	p_id	alias for $1;
-	v_name	varchar;
-BEGIN
-	select	cc.cost_center_name into v_name from im_cost_centers cc
-	where	cost_center_id = p_id;
-
-	return v_name;
-end;' language 'plpgsql';
-
-
-create or replace function im_cost_center_code_from_id (integer)
-returns varchar as '
-DECLARE
-	p_id	alias for $1;
-	v_name	varchar;
-BEGIN
-	select	cc.cost_center_code into v_name from im_cost_centers cc
-	where	cost_center_id = p_id;
-
-	return v_name;
-end;' language 'plpgsql';
 
 
 
 create or replace function im_cost_nr_from_id (integer)
-returns varchar as '
+returns varchar as $$
 DECLARE
 	p_id	alias for $1;
 	v_name	varchar;
@@ -2137,29 +789,8 @@ BEGIN
 	where cost_id = p_id;
 
 	return v_name;
-end;' language 'plpgsql';
+end;$$ language 'plpgsql';
 
-
-create or replace function im_investment_name_from_id (integer)
-returns varchar as '
-DECLARE
-	p_id	alias for $1;
-	v_name	varchar;
-BEGIN
-	select i.name
-	into v_name
-	from im_investments
-	where investment_id = p_id;
-
-	return v_name;
-end;' language 'plpgsql';
-
-
-
--------------------------------------------------------------
--- Import common functionality
-
-\i ../common/intranet-cost-backup.sql
 
 
 
@@ -2225,8 +856,6 @@ select acs_privilege__create_privilege('fi_write_repeatings','Write Repeatings',
 select acs_privilege__add_child('fi_read_all', 'fi_read_repeatings');
 select acs_privilege__add_child('fi_write_all', 'fi_write_repeatings');
 
-
-
 select acs_privilege__create_privilege('fi_read_interco_invoices','Read Interco Invoices','Read Interco Invoices');
 select acs_privilege__create_privilege('fi_write_interco_invoices','Write Interco Invoices','Write Interco Invoices');
 select acs_privilege__add_child('fi_read_all', 'fi_read_interco_invoices');
@@ -2237,203 +866,10 @@ select acs_privilege__create_privilege('fi_write_interco_quotes','Write Interco 
 select acs_privilege__add_child('fi_read_all', 'fi_read_interco_quotes');
 select acs_privilege__add_child('fi_write_all', 'fi_write_interco_quotes');
 
-
-
-
-
 select im_priv_create('fi_read_all','P/O Admins');
 select im_priv_create('fi_read_all','Senior Managers');
 select im_priv_create('fi_read_all','Accounting');
 select im_priv_create('fi_write_all','P/O Admins');
 select im_priv_create('fi_write_all','Senior Managers');
 select im_priv_create('fi_write_all','Accounting');
-
-
-
--------------------------------------------------------------
--- Update the context_id fields of the cost centers, 
--- so that permissions are inherited
---
-create or replace function inline_0 ()
-returns integer as '
-DECLARE
-	row			RECORD;
-BEGIN
-	FOR row IN
-	select	*
-		from	im_cost_centers
-	LOOP
-		RAISE NOTICE ''inline_0: cc_id=%'', row.cost_center_id;
-	
-		update acs_objects
-		set context_id = row.parent_id
-		where object_id = row.cost_center_id;
-	END LOOP;
-	return 0;
-end;' language 'plpgsql';
-select inline_0 ();
-drop function inline_0();
-
-
-
--------------------------------------------------------------
--- Update the context_id field of the "Co - The Company"
--- so that permissions are inherited from SubSite
---
-create or replace function inline_0 ()
-returns integer as '
-DECLARE
-	v_subsite_id		integer;
-BEGIN
-	-- Get the Main Site id, used as the global identified for permissions
-	select package_id into v_subsite_id from apm_packages
-	where package_key=''acs-subsite'';
-
-	update acs_objects
-		set context_id = v_subsite_id
-	where	object_id in (
-			select cost_center_id
-			from im_cost_centers
-			where parent_id is null
-		);
-
-	return 0;
-end;' language 'plpgsql';
-select inline_0();
-drop function inline_0();
-
-
-
-
-
-
-
-SELECT im_component_plugin__new (
-	null,					-- plugin_id
-	'im_component_plugin',			-- object_type
-	now(),					-- creation_date
-	null,					-- creation_user
-	null,					-- creation_ip
-	null,					-- context_id
-	'Top 10 Unpaid Customer Invoices',	-- plugin_name - shown in menu
-	'intranet-cost',			-- package_name
-	'left',					-- location
-	'/intranet-cost/index',			-- page_url
-	null,					-- view_name
-	10,					-- sort_order
-	'im_ad_hoc_query -format html -package_key intranet-cost "
-select
-	''<a href=/intranet-invoices/view?invoice_id='' || c.cost_id || ''>'' || c.cost_name || ''</a>'' as document_nr
-	im_cost_center_code_from_id(c.cost_center_id) as cost_center,
-	''<a href=/intranet/companies/view?company_id='' || c.customer_id || ''>'' || im_company__name(c.customer_id) || ''</a>'' as customer_name,
-	c.effective_date::date + c.payment_days as due_date,
-	c.amount::text || '' '' || c.currency as amount,
-	c.paid_amount::text || '' '' || c.paid_currency as paid_amount
-from	im_costs c
-where	c.cost_type_id = 3700 and
-	c.cost_status_id not in (3810, 3814, 3816, 3818)
-order by coalesce(c.amount,0) DESC
-limit 10
-"',	-- component_tcl
-	'lang::message::lookup "" intranet-cost.Top_10_Unpaid_Customer_Invoices "Top 10 Unpaid Customer Invoices"'
-);
-
-
-
-SELECT im_component_plugin__new (
-	null,					-- plugin_id
-	'im_component_plugin',			-- object_type
-	now(),					-- creation_date
-	null,					-- creation_user
-	null,					-- creation_ip
-	null,					-- context_id
-	'Top 10 Unpaid Provider Bills',		-- plugin_name - shown in menu
-	'intranet-cost',			-- package_name
-	'left',					-- location
-	'/intranet-cost/index',			-- page_url
-	null,					-- view_name
-	20,					-- sort_order
-	'im_ad_hoc_query -format html -package_key intranet-cost "
-select
-	''<a href=/intranet-invoices/view?invoice_id='' || c.cost_id || ''>'' || c.cost_name || ''</a>'' as document_nr
-	im_cost_center_code_from_id(c.cost_center_id) as cost_center,
-	''<a href=/intranet/companies/view?company_id='' || c.provider_id || ''>'' || im_company__name(c.provider_id) || ''</a>'' as provider_name,
-	c.effective_date::date + c.payment_days as due_date,
-	c.amount::text || '' '' || c.currency as amount,
-	c.paid_amount::text || '' '' || c.paid_currency as paid_amount
-from	im_costs c
-where	c.cost_type_id = 3704 and
-	c.cost_status_id not in (3810, 3814, 3816, 3818)
-order by coalesce(c.amount,0) DESC
-limit 10
-"',	-- component_tcl
-	'lang::message::lookup "" intranet-cost.Top_10_Unpaid_Provider_Bills "Top 10 Unpaid Provider Bills"'
-);
-
-
-
--- Help Blurb Portlet
---
-SELECT im_component_plugin__new (
-        null,                                   -- plugin_id
-        'im_component_plugin',                  -- object_type
-        now(),                                  -- creation_date
-        null,                                   -- creation_user
-        null,                                   -- creation_ip
-        null,                                   -- context_id
-        'Finance Home Page Help',               -- plugin_name
-        'intranet-cost',                        -- package_name
-        'top',                                  -- location
-        '/intranet-cost/index',                 -- page_url
-        null,                                   -- view_name
-        10,                                     -- sort_order
-        'set a "
-		This page shows a section of possible reports and indicators that might help you
-		to obtain a quick overview over your company finance.<br>
-		The examples included below can be easily modified and extended to suit your needs. <br>
-		Please login as System Administrator and click on the wrench ([im_gif wrench])
-		symbols to the right of each portlet.
-	"',
-        'lang::message::lookup "" intranet-cost.Help_Blurb "Finance Home Page Help"'
-);
-
-
-
-
-
-update im_component_plugins set component_tcl = '
-im_ad_hoc_query -format html -package_key intranet-cost "
-select	''<a href=/intranet-invoices/view?invoice_id='' || c.cost_id || ''>'' || c.cost_name || ''</a>'' as document_nr,
-	''<a href=/intranet-cost/cost-centers/new?cost_center_id='' || c.cost_center_id || ''>'' || im_cost_center_code_from_id(c.cost_center_id) || ''</a>'' as cost_center,
-	''<a href=/intranet/companies/view?company_id='' || c.customer_id || ''>'' || im_company__name(c.customer_id) || ''</a>'' as customer_name,
-	c.effective_date::date + c.payment_days as due_date,
-	c.amount::text || '' '' || c.currency as amount,
-	c.paid_amount::text || '' '' || c.paid_currency as paid_amount
-from	im_costs c
-where	c.cost_type_id = 3700 and
-	c.cost_status_id not in (3810, 3814, 3816, 3818)
-order by coalesce(c.amount,0) DESC
-limit 10
-"'
-where plugin_name = 'Top 10 Unpaid Customer Invoices';
-
-
-
-
-update im_component_plugins set component_tcl = '
-im_ad_hoc_query -format html -package_key intranet-cost "
-select
-	''<a href=/intranet-invoices/view?invoice_id='' || c.cost_id || ''>'' || c.cost_name || ''</a>'' as document_nr,
-	''<a href=/intranet-cost/cost-centers/new?cost_center_id='' || c.cost_center_id || ''>'' || im_cost_center_code_from_id(c.cost_center_id) || ''</a>'' as cost_center,
-	''<a href=/intranet/companies/view?company_id='' || c.provider_id || ''>'' || im_company__name(c.provider_id) || ''</a>'' as provider_name,
-	c.effective_date::date + c.payment_days as due_date,
-	c.amount::text || '' '' || c.currency as amount,
-	c.paid_amount::text || '' '' || c.paid_currency as paid_amount
-from	im_costs c
-where	c.cost_type_id = 3704 and
-	c.cost_status_id not in (3810, 3814, 3816, 3818)
-order by coalesce(c.amount,0) DESC
-limit 10
-"'
-where plugin_name = 'Top 10 Unpaid Provider Bills';
 
