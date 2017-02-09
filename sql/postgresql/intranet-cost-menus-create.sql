@@ -16,7 +16,7 @@ SELECT im_menu__new (
 	'intranet-cost',		-- package_name
 	'finance',			-- label
 	'Finance',			-- name
-	'/intranet-costs/list',		-- url
+	'/intranet-cost/list',		-- url
 	800,				-- sort_order
 	(select menu_id from im_menus where label = 'main'),	-- parent_menu_id
 	null				-- visible_tcl
