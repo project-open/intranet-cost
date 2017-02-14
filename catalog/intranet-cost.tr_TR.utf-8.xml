@@ -41,7 +41,7 @@
   <msg key="Investment">Yatırım</msg>
   <msg key="lt_Cost_Item_Administrat">Maliyetler Yönetimi</msg>
   <msg key="lt_Create_a_new_purchase">Yeni Satış Siparişi Oluştur</msg>
-  <msg key="lt_Didnt_find_the_the_vi">Bulamadım '%$view_name%'</msg>
+  <msg key="lt_Didnt_find_the_the_vi">Bulamadım &#39;%$view_name%&#39;</msg>
   <msg key="lt_Distribute_costs_acco">Maliyetleri zaman çizelgesine göre paylaştır</msg>
   <msg key="lt_Finance_high-level_de">Finans üst derece açıklama</msg>
   <msg key="lt_No_financial_document">Bu proje için henüz finansal doküman yok</msg>

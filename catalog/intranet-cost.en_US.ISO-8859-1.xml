@@ -62,7 +62,9 @@
   <msg key="Filter_Documents">Filter Documents</msg>
   <msg key="Finance">Finance</msg>
   <msg key="finance">finance</msg>
+  <msg key="Finance_Dashboard">Finance Dashboard</msg>
   <msg key="Finance_Home">Finance Home</msg>
+  <msg key="Finance_List_Complete">Finance List Complete</msg>
   <msg key="Finance_Summary">Finance Summary</msg>
   <msg key="Financial_Documents">Financial Documents</msg>
   <msg key="Financial_Indicators_Timeline">Financial Indicators Timeline</msg>

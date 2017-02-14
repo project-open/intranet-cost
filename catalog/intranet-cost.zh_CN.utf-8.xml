@@ -47,12 +47,12 @@
   <msg key="Investment">投资</msg>
   <msg key="lt_Cost_Item_Administrat">成本项管理</msg>
   <msg key="lt_Create_a_new_purchase">创建新的采购订单</msg>
-  <msg key="lt_Didnt_find_the_the_vi">没有找到视图 '%$view_name%'</msg>
+  <msg key="lt_Didnt_find_the_the_vi">没有找到视图 &#39;%$view_name%&#39;</msg>
   <msg key="lt_Distribute_costs_acco">根据工时表来分配成本</msg>
   <msg key="lt_Finance_high-level_de">财务高层次描述</msg>
   <msg key="lt_No_financial_document">这个项目还没有金融文档</msg>
   <msg key="lt_There_are_currently_n">根据当前选择条件没有成本匹配</msg>
-  <msg key="lt_This_is_the_homepage_">这里是&quot;金融区域&quot;首页. 在这里您可以找到并输入关于公司,项目和用户的所有信息</msg>
+  <msg key="lt_This_is_the_homepage_">这里是&#34;金融区域&#34;首页. 在这里您可以找到并输入关于公司,项目和用户的所有信息</msg>
   <msg key="Materials_Service_Types">材料(服务类型)</msg>
   <msg key="more_costs">更多成本...</msg>
   <msg key="Multiple_Currency_Warning">&lt;h2&gt;多汇率提醒&lt;/h2&gt;&lt;p&gt;本项目包括多于一个汇率的金融文档.&lt;br&gt;通常情况下这是允许的,它需要我们计算项目的损益数量以及该项目的边际计算</msg>

@@ -46,12 +46,12 @@
   <msg key="Investment">Inversión</msg>
   <msg key="lt_Cost_Item_Administrat">Administración de elementos de costo</msg>
   <msg key="lt_Create_a_new_purchase">Crear nueva orden de compra</msg>
-  <msg key="lt_Didnt_find_the_the_vi">No se ha encontrado la vista '%$view_name%'</msg>
+  <msg key="lt_Didnt_find_the_the_vi">No se ha encontrado la vista &#39;%$view_name%&#39;</msg>
   <msg key="lt_Distribute_costs_acco">Distribuir costos de acuerdo a la información de la hoja de tiempos</msg>
   <msg key="lt_Finance_high-level_de">Finanzas descripción de alto nivel</msg>
   <msg key="lt_No_financial_document">No existen aún documentos financieros para este proyecto</msg>
   <msg key="lt_There_are_currently_n">Actualmente no existen costos que se ajusten a los criterios seleccionados</msg>
-  <msg key="lt_This_is_the_homepage_">Esta es la portada del &quot;Area Financiera&quot;. Aquí podrá encontrar e introducir toda la informaciín sobre empresas, proyectos y usuarios.</msg>
+  <msg key="lt_This_is_the_homepage_">Esta es la portada del &#34;Area Financiera&#34;. Aquí podrá encontrar e introducir toda la informaciín sobre empresas, proyectos y usuarios.</msg>
   <msg key="Materials_Service_Types">Materiales (Tipos de Servicio)</msg>
   <msg key="more_costs">mas costos...</msg>
   <msg key="Multiple_Currency_Warning">&lt;h2&gt;Advertencia de Divisa Múltiple&lt;/h2&gt; &lt;p&gt; Este proyecto contiene documentos financieros en más de una moneda. &lt;br&gt; Aunque es correcto en general, esto impide calcular el resultado de pérdidas y ganancias e incluírlo en el cálculo del margen de proyecto&lt;/p&gt;</msg>

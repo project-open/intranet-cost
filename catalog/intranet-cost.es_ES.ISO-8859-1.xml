@@ -47,12 +47,12 @@
   <msg key="Investment">Inversión</msg>
   <msg key="lt_Cost_Item_Administrat">Administración de elementos de coste</msg>
   <msg key="lt_Create_a_new_purchase">Crear una nueva orden de compra</msg>
-  <msg key="lt_Didnt_find_the_the_vi">No he encontrado la vista '%$view_name%'</msg>
+  <msg key="lt_Didnt_find_the_the_vi">No he encontrado la vista &#39;%$view_name%&#39;</msg>
   <msg key="lt_Distribute_costs_acco">Repartir los costes con arreglo a la información de la hoja de control de tiempos</msg>
   <msg key="lt_Finance_high-level_de">Descripción de alto nivel de Finanzas</msg>
   <msg key="lt_No_financial_document">No existen todavía documentos financieros para este proyecto</msg>
   <msg key="lt_There_are_currently_n">Actualmente no existen costes que se ajusten a los criterios seleccionados</msg>
-  <msg key="lt_This_is_the_homepage_">Esta es la portada del &quot;Área financiera&quot;. Aquí podrá encontrar e introducir toda la información sobre empresas, proyectos y usuarios.</msg>
+  <msg key="lt_This_is_the_homepage_">Esta es la portada del &#34;Área financiera&#34;. Aquí podrá encontrar e introducir toda la información sobre empresas, proyectos y usuarios.</msg>
   <msg key="Materials_Service_Types">Materiales (Tipos de servicio)</msg>
   <msg key="more_costs">más costes...</msg>
   <msg key="Multiple_Currency_Warning">&amp;lt;h2&amp;gt;Advertencia: divisa m&amp;uacute;ltiple &amp;lt;/h2&amp;gt;

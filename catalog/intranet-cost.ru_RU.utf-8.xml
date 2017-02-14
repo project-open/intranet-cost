@@ -46,12 +46,12 @@
   <msg key="Investment">Инвестиции</msg>
   <msg key="lt_Cost_Item_Administrat">Администрирование расходов</msg>
   <msg key="lt_Create_a_new_purchase">Создать заказ на приобретение</msg>
-  <msg key="lt_Didnt_find_the_the_vi">Не удается найти представление &quot;%$view_name%&quot;</msg>
+  <msg key="lt_Didnt_find_the_the_vi">Не удается найти представление &#34;%$view_name%&#34;</msg>
   <msg key="lt_Distribute_costs_acco">Распределить затраты в соответствии с табелем рабочего времени</msg>
   <msg key="lt_Finance_high-level_de">Общее описание финансов</msg>
   <msg key="lt_No_financial_document">Для этого проекта еще нет финансовых документов</msg>
   <msg key="lt_There_are_currently_n">Нет затрат, соответствующих заданным условиям</msg>
-  <msg key="lt_This_is_the_homepage_">Это домашняя страница &quot;Финансов&quot;. Здесь можно просматривать и вводить все данные о компаниях, проектах и пользователях.</msg>
+  <msg key="lt_This_is_the_homepage_">Это домашняя страница &#34;Финансов&#34;. Здесь можно просматривать и вводить все данные о компаниях, проектах и пользователях.</msg>
   <msg key="Materials_Service_Types">Материалы (типы услуг)</msg>
   <msg key="more_costs">другие затраты...</msg>
   <msg key="Multiple_Currency_Warning">&lt;h2&gt;Предупреждение о нескольких валютах&lt;/h2&gt; &lt;p&gt; Этот проект включает финансовые документы в более чем одной валюте. &lt;br&gt; Это вполне допустимо, но вычисление прибылей и убытков, а также маржи по этому проекту будет невозможно. &lt;/p&gt;</msg>

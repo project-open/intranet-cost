@@ -31,7 +31,7 @@
   <msg key="Due">Echéance</msg>
   <msg key="Due_Date">Date échéance</msg>
   <msg key="Edit_Cost">Modifier coût</msg>
-  <msg key="Effective_Date">Date d'effet</msg>
+  <msg key="Effective_Date">Date d&#39;effet</msg>
   <msg key="Expenses">Frais</msg>
   <msg key="Export_Finance_to_CSV">Exporter finance au CSV</msg>
   <msg key="Filter_Documents">Filtrer les Documents</msg>
@@ -46,19 +46,19 @@
   <msg key="Investment">Investissement</msg>
   <msg key="lt_Cost_Item_Administrat">Administration Elément de coût</msg>
   <msg key="lt_Create_a_new_purchase">Créer un nouveau bon de commande</msg>
-  <msg key="lt_Didnt_find_the_the_vi">Vue '%$view_name%' non trouvée</msg>
+  <msg key="lt_Didnt_find_the_the_vi">Vue &#39;%$view_name%&#39; non trouvée</msg>
   <msg key="lt_Distribute_costs_acco">Répartir les coûts en tenant compte des heures consommées</msg>
   <msg key="lt_Finance_high-level_de">Description générale de la finance</msg>
   <msg key="lt_No_financial_document">Aucun document financier pour ce projet</msg>
   <msg key="lt_There_are_currently_n">Aucun coût ne correspond aux critères de recherche</msg>
-  <msg key="lt_This_is_the_homepage_">Vous êtes sur la page d'accueil de la &amp;quot;partie finance&amp;quot;. Vous trouverez ici toutes les informations concenant les sociétés, projets et utilisateurs.</msg>
+  <msg key="lt_This_is_the_homepage_">Vous êtes sur la page d&#39;accueil de la &amp;quot;partie finance&amp;quot;. Vous trouverez ici toutes les informations concenant les sociétés, projets et utilisateurs.</msg>
   <msg key="Materials_Service_Types">Matériels (Types de service)</msg>
   <msg key="more_costs">Plus de coûts...</msg>
   <msg key="Multiple_Currency_Warning">&amp;lt;h2&amp;gt;Attention, devises multiples&amp;lt;/h2&amp;gt;
 &amp;lt;p&amp;gt;
 Ce projet comprend des documents financiers utilisant plusieurs devises
 &amp;lt;br&amp;gt;
-Bien que cela ne pose généralement aucun problème, cela nous empêche d'effectuer le calcul des pertes et profits pour ce projet ainsi que pour le calcul de la marge du projet.&amp;lt;/p&amp;gt;</msg>
+Bien que cela ne pose généralement aucun problème, cela nous empêche d&#39;effectuer le calcul des pertes et profits pour ce projet ainsi que pour le calcul de la marge du projet.&amp;lt;/p&amp;gt;</msg>
   <msg key="Name">Nom</msg>
   <msg key="New_Cost">Nouveau coût</msg>
   <msg key="New_Cost_Item">Nouvel élément de coût</msg>
@@ -83,7 +83,7 @@ Bien que cela ne pose généralement aucun problème, cela nous empêche d'effectuer
   <msg key="Preliminary_Costs">Coûts estimatifs</msg>
   <msg key="Preliminary_Total">Total prévisionnel</msg>
   <msg key="Previous_Page">Page précédente</msg>
-  <msg key="Print_Template">Modèle d'impression</msg>
+  <msg key="Print_Template">Modèle d&#39;impression</msg>
   <msg key="Project">Projet</msg>
   <msg key="Provider">Fournisseur</msg>
   <msg key="Provider_Bills">Factures Fournisseur</msg>
@@ -102,6 +102,6 @@ Bien que cela ne pose généralement aucun problème, cela nous empêche d'effectuer
   <msg key="Timesheet_Costs">Coûts liés aux heures consommées</msg>
   <msg key="Type">Type</msg>
   <msg key="VAT">TVA</msg>
-  <msg key="Who_gets_the_money">Qui récupère l'argent ?</msg>
+  <msg key="Who_gets_the_money">Qui récupère l&#39;argent ?</msg>
   <msg key="Who_pays">Qui paie ?</msg>
 </message_catalog>

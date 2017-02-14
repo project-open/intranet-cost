@@ -46,13 +46,13 @@
   <msg key="Grand_Total">Totale</msg>
   <msg key="Investment">Investimento</msg>
   <msg key="lt_Cost_Item_Administrat">Amministrazione voce di costo</msg>
-  <msg key="lt_Create_a_new_purchase">Crea un nuovo ordine d'acquisto</msg>
-  <msg key="lt_Didnt_find_the_the_vi">Visualizzazione '%$view_name%' non trovata</msg>
+  <msg key="lt_Create_a_new_purchase">Crea un nuovo ordine d&#39;acquisto</msg>
+  <msg key="lt_Didnt_find_the_the_vi">Visualizzazione &#39;%$view_name%&#39; non trovata</msg>
   <msg key="lt_Distribute_costs_acco">Distribuire i costi secondo i dati delle presenze</msg>
   <msg key="lt_Finance_high-level_de">Descrizione approfondita modulo finanze</msg>
   <msg key="lt_No_financial_document">Non esistono documenti finanziari per questo progetto</msg>
   <msg key="lt_There_are_currently_n">Non esistono costi corrispondenti al criterio selezionato</msg>
-  <msg key="lt_This_is_the_homepage_">Questa è la pagina iniziale dell'area Finanze. Qui si trovano tutte le  informazioni finanziarie relative a organizzazioni, progetti e utenti.</msg>
+  <msg key="lt_This_is_the_homepage_">Questa è la pagina iniziale dell&#39;area Finanze. Qui si trovano tutte le  informazioni finanziarie relative a organizzazioni, progetti e utenti.</msg>
   <msg key="Materials_Service_Types">Materiali (tipi di servizio)</msg>
   <msg key="more_costs">altri costi...</msg>
   <msg key="Multiple_Currency_Warning">&lt;h2&gt;Avvertenza di valuta multipla&lt;/h2&gt; &lt;p&gt; Il presente progetto comprende documenti finanziari con più di una valuta. &lt;br&gt; Sebbene ciò sia corretto in termini generali, tener conto che non sarà possibile calcolare il valore di profitti e perdite del progetto e neppure includerlo nel calcolo del margine di beneficio. &lt;/p&gt;</msg>
@@ -61,7 +61,7 @@
   <msg key="New_Cost_Item">Nuova voce di costo</msg>
   <msg key="New_Customer_Docs">Crea un nuovo documento (clienti)</msg>
   <msg key="New_Customer_Invoices_Quotes">Nuove fatture e preventivi cliente</msg>
-  <msg key="New_Provider_Bills_POs">Nuove parcelle e ordini d'acquisto fornitori</msg>
+  <msg key="New_Provider_Bills_POs">Nuove parcelle e ordini d&#39;acquisto fornitori</msg>
   <msg key="New_Provider_Docs">Crea un nuovo documento (fornitori)</msg>
   <msg key="New_Timesheet_Invoice">Nuova fattura da presenze</msg>
   <msg key="New_Trans_Invoice">Nuova fattura traduzioni</msg>
@@ -87,7 +87,7 @@
   <msg key="Provider_Bills">Parcelle fornitori</msg>
   <msg key="Provider_Links">Link fornitori</msg>
   <msg key="Providers">Fornitori</msg>
-  <msg key="Purchase_Orders">Ordini d'acquisto</msg>
+  <msg key="Purchase_Orders">Ordini d&#39;acquisto</msg>
   <msg key="Quotes">Preventivi</msg>
   <msg key="Real_Costs">Costi reali</msg>
   <msg key="Repeating_Costs">Costi ricorrenti</msg>
@@ -95,7 +95,7 @@
   <msg key="Start_Block">Blocco iniziale</msg>
   <msg key="Status">Stato</msg>
   <msg key="TAX">RITENUTA</msg>
-  <msg key="The_exchange_rates_are_outdated">I tassi di cambio delle valute seguenti non sono aggiornati. Contattare l'amministratore di sistema per aggiornare i seguenti tassi di cambio:</msg>
+  <msg key="The_exchange_rates_are_outdated">I tassi di cambio delle valute seguenti non sono aggiornati. Contattare l&#39;amministratore di sistema per aggiornare i seguenti tassi di cambio:</msg>
   <msg key="Timesheet_Budget">Budget presenze</msg>
   <msg key="Timesheet_Costs">Costi presenze</msg>
   <msg key="Type">Tipo</msg>

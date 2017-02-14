@@ -65,14 +65,14 @@
   <msg key="Filter_Documents">Dokumente filtern</msg>
   <msg key="Finance">Finanzen</msg>
   <msg key="finance">Finanzen</msg>
-  <msg key="Finance_Home">Finanzen Homepage</msg>
+  <msg key="Finance_Home">Finanzen Übersicht</msg>
   <msg key="Finance_Summary">Kosten Zusammenfassung</msg>
   <msg key="Financial_Documents">Finanzdokumente</msg>
   <msg key="Financial_Indicators_Timeline">Zeitleiste für Finanzindikatoren</msg>
   <msg key="Financial_Summary">Finanzielle Zusammenfassung</msg>
   <msg key="Go">Los</msg>
   <msg key="Grand_Total">Gesamtsumme</msg>
-  <msg key="Help_Blurb">Finance Home Page Help</msg>
+  <msg key="Help_Blurb">Finanzen Hilfe</msg>
   <msg key="InheritFrom">Erben von</msg>
   <msg key="Investment">Investition</msg>
   <msg key="Invoice">Rechnungen</msg>
@@ -83,7 +83,7 @@
   <msg key="lt_Finance_high-level_de">Finanzen Beschreibung</msg>
   <msg key="lt_No_financial_document">Keine Finanzdokumente für dieses Projekt gefunden</msg>
   <msg key="lt_There_are_currently_n">Keine Kosten gefunden für die ausgewählten Filterkriterien</msg>
-  <msg key="lt_This_is_the_homepage_">Dies ist die Finanz-Homepage. Hier finden Sie alle Information über finanzielle Vorgänge mit Kunden und Lieferanten.</msg>
+  <msg key="lt_This_is_the_homepage_">Dies ist die Finanz Übersicht. Hier finden Sie alle Information über finanzielle Vorgänge mit Kunden und Lieferanten.</msg>
   <msg key="Manager">Manager</msg>
   <msg key="Materials_Service_Types">Materialien (Serviceart)</msg>
   <msg key="more_costs">Weitere Dokumente...</msg>

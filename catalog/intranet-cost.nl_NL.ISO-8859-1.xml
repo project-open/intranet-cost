@@ -46,7 +46,7 @@
   <msg key="Investment">Investering</msg>
   <msg key="lt_Cost_Item_Administrat">Kosten item administratie</msg>
   <msg key="lt_Create_a_new_purchase">creeer een nieuwe aankooporder</msg>
-  <msg key="lt_Didnt_find_the_the_vi">Kan het overzicht '%$view_name%' niet vinden</msg>
+  <msg key="lt_Didnt_find_the_the_vi">Kan het overzicht &#39;%$view_name%&#39; niet vinden</msg>
   <msg key="lt_Distribute_costs_acco">Distribueer kosten volgens de tijdlijst informatie</msg>
   <msg key="lt_Finance_high-level_de">Financieel overzicht beschrijving</msg>
   <msg key="lt_No_financial_document">Er zijn nog geen financiële documenten voor dit project </msg>
