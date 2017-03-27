@@ -16,7 +16,7 @@ set max_project_name 40
 
 
 set cost_sql "
-select	sum(round((c.amount * im_exchange_rate(c.effective_date::date, c.currency, :default_currency))::numeric)) as amount,
+select	coalesce(sum(round((c.amount * im_exchange_rate(c.effective_date::date, c.currency, :default_currency))::numeric)), 0.0) as amount,
 	main_p.project_id,
 	substring(main_p.project_name for :max_project_name) as project_name,
 	c.cost_type_id
@@ -91,3 +91,4 @@ set html "
 </tr>
 $lines
 "
+
