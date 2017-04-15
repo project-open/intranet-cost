@@ -150,15 +150,12 @@ ad_proc -public im_cost_permissions {user_id cost_id view_var read_var write_var
     set cost_center_id 0
     set cost_type_id 0
     db_0or1row get_companies "
-        select
-                customer_id,
-                provider_id,
+	select	customer_id,
+		provider_id,
 		cost_center_id,
 		cost_type_id
-        from
-                im_costs
-        where
-                cost_id = :cost_id
+	from	im_costs
+	where	cost_id = :cost_id
     "
 
     # -----------------------------------------------------
@@ -167,8 +164,8 @@ ad_proc -public im_cost_permissions {user_id cost_id view_var read_var write_var
     set cc_read [im_cost_center_read_p $cost_center_id $cost_type_id $user_id]
     set cc_write [im_cost_center_write_p $cost_center_id $cost_type_id $user_id]
 
-    set can_read [expr {[im_permission $user_id view_costs] || [im_permission $user_id view_invoices]}]
-    set can_write [expr {[im_permission $user_id add_costs] || [im_permission $user_id add_invoices]}]
+    set can_read [expr [im_permission $user_id view_costs] || [im_permission $user_id view_invoices]]
+    set can_write [expr [im_permission $user_id add_costs] || [im_permission $user_id add_invoices]]
 
     # AND-connection with add/view - costs/invoices
     if {!$can_read} { set cc_read 0 }
