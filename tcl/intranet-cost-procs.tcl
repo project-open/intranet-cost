@@ -108,6 +108,11 @@ ad_proc -public im_cost_type_is_invoice_or_quote_p { cost_type_id } {
     so we need to identify them:
 } {
     if {"" eq $cost_type_id} { set cost_type_id 0 }
+
+    # fraber 170503: Allow to create new cost types below provider or customer docs.
+    if {[im_category_is_a $cost_type_id [im_cost_type_provider_doc]]} { return 0 }
+    if {[im_category_is_a $cost_type_id [im_cost_type_customer_doc]]} { return 1 }
+
     set invoice_or_quote_p [expr $cost_type_id eq [im_cost_type_invoice] || $cost_type_id eq [im_cost_type_quote] || $cost_type_id eq [im_cost_type_delivery_note] || $cost_type_id eq [im_cost_type_interco_invoice] || $cost_type_id eq [im_cost_type_interco_quote]]
     return $invoice_or_quote_p
 }
