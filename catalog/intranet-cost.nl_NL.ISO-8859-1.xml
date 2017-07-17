@@ -8,11 +8,13 @@
   <msg key="Administration">Administratie</msg>
   <msg key="All_Costs">Alle kosten</msg>
   <msg key="Amount">Aantal</msg>
+  <msg key="Amount_without_VAT">Bedrag zonder BTW</msg>
   <msg key="Client">Kliënt</msg>
   <msg key="Companies">Berdrijven</msg>
   <msg key="Company">Bedrijf</msg>
   <msg key="context">Context</msg>
   <msg key="Cost_Center">Kostenplaats</msg>
+  <msg key="Cost_Center_permissions_help">Kostenplaats autorisaties hulp</msg>
   <msg key="Cost_Centers">Kostenplaats</msg>
   <msg key="Cost_Items">Kost item</msg>
   <msg key="CostCenter_short">KP</msg>
@@ -52,6 +54,7 @@
   <msg key="lt_No_financial_document">Er zijn nog geen financiële documenten voor dit project </msg>
   <msg key="lt_There_are_currently_n">Er zijn geen kosten die overeenkomen met de selectie criteria</msg>
   <msg key="lt_This_is_the_homepage_">Dit is de homepage van het financiële deel. Hier kunt u alle informatie vinden en invoeren over bedrijven, projecten en gebruikers.</msg>
+  <msg key="Manager">Manager</msg>
   <msg key="Materials_Service_Types">Materialen (service typen)</msg>
   <msg key="more_costs">meer kosten...</msg>
   <msg key="Multiple_Currency_Warning">&lt;h2&gt;Waarschuwing meerdere munteenheden&lt;/h2&gt; &lt;p&gt; Dit project bevat financiële documenten met meer dan één munteenheid. &lt;br&gt; Hoewel dit in het algemeen geen probleem is, kan er geen eenduidige winst&amp;verlies post voor dit project berekend worden, en kan dit project niet in de project winst berekening worden meegenomen. &lt;/p&gt;</msg>
@@ -66,6 +69,7 @@
   <msg key="New_Trans_Invoice">Nieuwe factuur voor vertaling</msg>
   <msg key="Next_Page">Volgende Pagina</msg>
   <msg key="Note">Notitie</msg>
+  <msg key="Number_billable_expenses">Aantal uit te betalen onkosten</msg>
   <msg key="Options">Opties:</msg>
   <msg key="Org_Amount">Org</msg>
   <msg key="Outdated_Message">Waarschuwing: wisselkoersen zijn verouderd</msg>
@@ -75,6 +79,7 @@
   <msg key="Paid_Currency">Betaalde in munteenheid</msg>
   <msg key="Payment_Days">Betaaldagen</msg>
   <msg key="Payments">Betalingen</msg>
+  <msg key="Perms">Perms</msg>
   <msg key="Please_Select">Kies</msg>
   <msg key="Preliminary_Costs">Voorlopige kosten</msg>
   <msg key="Preliminary_Total">Voorlopig totaal</msg>
@@ -97,6 +102,7 @@
   <msg key="Timesheet_Budget">Tijdlijst budget</msg>
   <msg key="Timesheet_Costs">Tijdlijst kosten</msg>
   <msg key="Type">Type</msg>
+  <msg key="Update_Exchange_Rates">Update wisselkoersen</msg>
   <msg key="VAT">BTW</msg>
   <msg key="Who_gets_the_money">Wie krijgt het geld?</msg>
   <msg key="Who_pays">Wie betaald?</msg>

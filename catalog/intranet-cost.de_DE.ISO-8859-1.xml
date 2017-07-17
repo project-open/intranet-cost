@@ -4,15 +4,7 @@
   <msg key="Absences">Abwesenheiten</msg>
   <msg key="Accounts_Payable">Lieferantenbuchhaltung</msg>
   <msg key="Accounts_Receivable">Kundenbuchhaltung</msg>
-  <msg key="Ad_hoc_amount">Betrag</msg>
-  <msg key="Ad_hoc_cost_center">Kostenstelle</msg>
-  <msg key="Ad_hoc_customer_name">Kunde</msg>
-  <msg key="Ad_hoc_document_nr">Nr.</msg>
-  <msg key="Ad_hoc_due_date">Fällig</msg>
-  <msg key="Ad_hoc_paid_amount">Bezahlt</msg>
-  <msg key="Ad_hoc_provider_name">Lieferant</msg>
   <msg key="Admin">Admin</msg>
-  <msg key="AdminCostCenter">Admin Kostenstellen</msg>
   <msg key="Administration">Admin</msg>
   <msg key="All_Costs">Alle Kosten</msg>
   <msg key="Amount">Betrag</msg>
@@ -72,7 +64,6 @@
   <msg key="Financial_Summary">Finanzielle Zusammenfassung</msg>
   <msg key="Go">Los</msg>
   <msg key="Grand_Total">Gesamtsumme</msg>
-  <msg key="Help_Blurb">Finanzen Hilfe</msg>
   <msg key="InheritFrom">Erben von</msg>
   <msg key="Investment">Investition</msg>
   <msg key="Invoice">Rechnungen</msg>
