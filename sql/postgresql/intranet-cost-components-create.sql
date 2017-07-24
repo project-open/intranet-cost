@@ -127,12 +127,12 @@ SELECT im_component_plugin__new (
         '/intranet-cost/index',                 -- page_url
         null,                                   -- view_name
         10,                                     -- sort_order
-        'set a "
+        'set a [lang::message::lookup "" intranet-core.Finance_Home_Page_Help "
 		This page shows a section of possible reports and indicators that might help you
 		to obtain a quick overview over your company finance.<br>
 		The examples included below can be easily modified and extended to suit your needs. <br>
 		Please login as System Administrator and click on the wrench ([im_gif wrench])
 		symbols to the right of each portlet.
-	"',
+	"]',
         'lang::message::lookup "" intranet-cost.Help_Blurb "Finance Home Page Help"'
 );
