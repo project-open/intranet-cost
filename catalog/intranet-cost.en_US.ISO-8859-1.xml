@@ -19,6 +19,7 @@
   <msg key="Amount_without_VAT">Amount without VAT</msg>
   <msg key="Bill">Prov. Bills</msg>
   <msg key="Client">Customer</msg>
+  <msg key="Code_Parent">Code Parent</msg>
   <msg key="Companies">Companies</msg>
   <msg key="Company">Company</msg>
   <msg key="context">Context</msg>
@@ -29,8 +30,10 @@
   <msg key="Cost_Items">Cost Items</msg>
   <msg key="CostCenter">Cost Center Code</msg>
   <msg key="CostCenter_short">CC</msg>
+  <msg key="CostCenterStatus">Status</msg>
   <msg key="create">create</msg>
   <msg key="Created">Created</msg>
+  <msg key="CreateNewCostCenter">Create a new Cost Center</msg>
   <msg key="Creator">Creator</msg>
   <msg key="Currency">Currency</msg>
   <msg key="Customer">Customer</msg>
@@ -39,8 +42,10 @@
   <msg key="Customers">Customers</msg>
   <msg key="Del">Del</msg>
   <msg key="Deleted">Deleted</msg>
+  <msg key="DepartmentP">Dept?</msg>
   <msg key="DeptQuest">Department?</msg>
   <msg key="Description">Description</msg>
+  <msg key="Direct_Parent">Direct Parent</msg>
   <msg key="Document">Document</msg>
   <msg key="Document_Status">Document Status</msg>
   <msg key="Document_Type">Document Type</msg>
@@ -174,6 +179,7 @@ While this is OK in general, it will keep us from calculating a single profit&am
   <msg key="Reports">Reports</msg>
   <msg key="Requested">Requested</msg>
   <msg key="Save">Save</msg>
+  <msg key="Sortkey_Parent">SortKey Parent</msg>
   <msg key="Start_Block">Start Block</msg>
   <msg key="Status">Status</msg>
   <msg key="TAX">TAX</msg>

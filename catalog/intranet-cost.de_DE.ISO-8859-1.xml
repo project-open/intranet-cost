@@ -19,6 +19,7 @@
   <msg key="Amount_without_VAT">Betrag ohne MwSt.</msg>
   <msg key="Bill">Lieferantenrechnung</msg>
   <msg key="Client">Kunde</msg>
+  <msg key="Code_Parent">Code Eltern</msg>
   <msg key="Companies">Firmen</msg>
   <msg key="Company">Firma</msg>
   <msg key="context">Kontext</msg>
@@ -32,8 +33,10 @@
   <msg key="Cost_Items">Kosten</msg>
   <msg key="CostCenter">Kostenstelle Code</msg>
   <msg key="CostCenter_short">KC</msg>
+  <msg key="CostCenterStatus">Status</msg>
   <msg key="create">create</msg>
   <msg key="Created">Erzeugt</msg>
+  <msg key="CreateNewCostCenter">Neue Kostenstelle</msg>
   <msg key="Creator">Erzeuger</msg>
   <msg key="Currency">Währung</msg>
   <msg key="Customer">Kunde</msg>
@@ -42,8 +45,10 @@
   <msg key="Customers">Kunden</msg>
   <msg key="Del">Löschen</msg>
   <msg key="Deleted">Gelöscht</msg>
+  <msg key="DepartmentP">Abteilung?</msg>
   <msg key="DeptQuest">Abteilung?</msg>
   <msg key="Description">Beschreibung</msg>
+  <msg key="Direct_Parent">Direkte Eltern</msg>
   <msg key="Document">Dokument</msg>
   <msg key="Document_Status">Dokumentenstatus</msg>
   <msg key="Document_Type">Typ</msg>
@@ -70,7 +75,7 @@
   <msg key="Finance_List_Complete">Finanzen Liste vollständig</msg>
   <msg key="Finance_Summary">Kosten Zusammenfassung</msg>
   <msg key="Financial_Documents">Finanzdokumente</msg>
-  <msg key="Financial_Indicators_Timeline">Zeitleiste für Finanzindikatoren</msg>
+  <msg key="Financial_Indicators_Timeline">Zeitleiste Finanzindikatoren</msg>
   <msg key="Financial_Summary">Finanzielle Zusammenfassung</msg>
   <msg key="Go">Los</msg>
   <msg key="Grand_Total">Gesamtsumme</msg>
@@ -171,6 +176,7 @@ Dieses Finanzdokument enhält mehr als eine Währung.</msg>
   <msg key="Reports">Berichte</msg>
   <msg key="Requested">Angefragt</msg>
   <msg key="Save">Speichern</msg>
+  <msg key="Sortkey_Parent">Sortierreihenfolge Eltern</msg>
   <msg key="Start_Block">Startwoche</msg>
   <msg key="Status">Status</msg>
   <msg key="TAX">Steuer</msg>
