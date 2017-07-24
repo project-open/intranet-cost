@@ -75,6 +75,24 @@
   <msg key="InheritFrom">Inherit From</msg>
   <msg key="Investment">Investment</msg>
   <msg key="Invoice">Invoices</msg>
+  <msg key="Invoicing_Quoting_Wizards">Invoicing &amp; Quoting Wizards</msg>
+  <msg key="Invoicing_Wizards_Help">&lt;p&gt;This table includes wizards that allow you to create customer
+		   financial documents (quotes, invoices, orders, ...)
+		   using a variety of methods:
+		&lt;ul&gt;
+		&lt;li&gt;&lt;b&gt;From Scratch&lt;/b&gt;:&lt;br&gt;
+		    Create a new document manually &#39;from scratch&#39;.
+		    This is the most simple option and gives you with total freedom.
+		&lt;/li&gt;
+		&lt;li&gt;&lt;b&gt;From Gantt Task (planned or logged hours)&lt;/b&gt;:&lt;br&gt;
+		    Create a new document based on a project plan 
+		    and it&#39;s planned or logged work hours.&lt;br&gt;
+		&lt;/li&gt;
+		&lt;li&gt;&lt;b&gt;From &amp;lt;Other Document&amp;gt;&lt;/b&gt;:&lt;br&gt;
+		    Create a new document starting off with a copy of another document.
+		    This is useful for example to invoice (parts of) quoted work.
+		&lt;/li&gt;
+		&lt;/ul&gt;</msg>
   <msg key="lt_Cost_Item_Administrat">Cost Item Administration</msg>
   <msg key="lt_Create_a_new_purchase">Create a new purchase order</msg>
   <msg key="lt_Didnt_find_the_the_vi">Didn&#39;t find the the view &#39;%$view_name%&#39;</msg>
@@ -109,6 +127,21 @@ While this is OK in general, it will keep us from calculating a single profit&am
   <msg key="Note">Note</msg>
   <msg key="Number_billable_expenses">Number billable expenses</msg>
   <msg key="Options">Options:</msg>
+  <msg key="Order_Wizards">Order Wizards</msg>
+  <msg key="Order_Wizards_Help">&lt;p&gt;This table includes wizards that allow you to create provider
+   financial documents (orders, provider bill, ...)
+   using a variety of methods:
+&lt;ul&gt;
+&lt;li&gt;&lt;b&gt;From Scratch&lt;/b&gt;:&lt;br&gt;
+    Create a new document manually &#39;from scratch&#39;.
+    This is the most simple option and gives you with total freedom.
+&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;From &amp;lt;Other Document&amp;gt;&lt;/b&gt;:&lt;br&gt;
+    Create a new document starting off with a copy of another document.
+    This is useful for example to invoice (parts of) quoted work.
+&lt;/li&gt;
+&lt;/ul&gt;
+</msg>
   <msg key="Org_Amount">Org</msg>
   <msg key="Outdated_Message">Outdated Exchange Rates Warning</msg>
   <msg key="Outdated_since_x_days">Outdated since %days% days</msg>
