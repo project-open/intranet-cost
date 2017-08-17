@@ -12,11 +12,13 @@
   <msg key="Ad_hoc_paid_amount">Bezahlt</msg>
   <msg key="Ad_hoc_provider_name">Lieferant</msg>
   <msg key="Admin">Admin</msg>
+  <msg key="Admin_Cost_Centers">Admin Kostenstellen</msg>
   <msg key="AdminCostCenter">Admin Kostenstellen</msg>
   <msg key="Administration">Admin</msg>
   <msg key="All_Costs">Alle Kosten</msg>
   <msg key="Amount">Betrag</msg>
   <msg key="Amount_without_VAT">Betrag ohne MwSt.</msg>
+  <msg key="Availability">Verfügbakeit</msg>
   <msg key="Bill">Lieferantenrechnung</msg>
   <msg key="Client">Kunde</msg>
   <msg key="Code_Parent">Code Eltern</msg>
@@ -45,6 +47,7 @@
   <msg key="Customers">Kunden</msg>
   <msg key="Del">Löschen</msg>
   <msg key="Deleted">Gelöscht</msg>
+  <msg key="Department">Abteilung</msg>
   <msg key="DepartmentP">Abteilung?</msg>
   <msg key="DeptQuest">Abteilung?</msg>
   <msg key="Description">Beschreibung</msg>
@@ -179,6 +182,7 @@ Dieses Finanzdokument enhält mehr als eine Währung.</msg>
   <msg key="Sortkey_Parent">Sortierreihenfolge Eltern</msg>
   <msg key="Start_Block">Startwoche</msg>
   <msg key="Status">Status</msg>
+  <msg key="Sum">Summe</msg>
   <msg key="TAX">Steuer</msg>
   <msg key="The_exchange_rates_are_outdated">Die Wechselkurse für die folgenden Währungen sind veraltet. Bitte kontaktieren sie ihren Systemadministrator um die folgenden Wechselkurse zu aktualisieren:</msg>
   <msg key="Timesheet_Budget">Zeiterfassungsbudget</msg>
