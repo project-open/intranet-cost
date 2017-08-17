@@ -12,11 +12,13 @@
   <msg key="Ad_hoc_paid_amount">Paid</msg>
   <msg key="Ad_hoc_provider_name">Provider</msg>
   <msg key="Admin">Admin</msg>
+  <msg key="Admin_Cost_Centers">Admin Cost Centers</msg>
   <msg key="AdminCostCenter">Admin Cost Center</msg>
   <msg key="Administration">Administration</msg>
   <msg key="All_Costs">All Costs</msg>
   <msg key="Amount">Amount</msg>
   <msg key="Amount_without_VAT">Amount without VAT</msg>
+  <msg key="Availability">Availability</msg>
   <msg key="Bill">Prov. Bills</msg>
   <msg key="Client">Customer</msg>
   <msg key="Code_Parent">Code Parent</msg>
@@ -42,6 +44,7 @@
   <msg key="Customers">Customers</msg>
   <msg key="Del">Del</msg>
   <msg key="Deleted">Deleted</msg>
+  <msg key="Department">Department</msg>
   <msg key="DepartmentP">Dept?</msg>
   <msg key="DeptQuest">Department?</msg>
   <msg key="Description">Description</msg>
@@ -182,6 +185,7 @@ While this is OK in general, it will keep us from calculating a single profit&am
   <msg key="Sortkey_Parent">SortKey Parent</msg>
   <msg key="Start_Block">Start Block</msg>
   <msg key="Status">Status</msg>
+  <msg key="Sum">Sum</msg>
   <msg key="TAX">TAX</msg>
   <msg key="The_exchange_rates_are_outdated">The exchanges rates for the following currencies are outdated. Please contact your System Administrator to update the following exchange rates:</msg>
   <msg key="Timesheet_Budget">Timesheet Budget</msg>
