@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<message_catalog package_key="intranet-cost" package_version="3.4.0.7.5" locale="pl_PL" charset="utf-8">
+<message_catalog package_key="intranet-cost" locale="pl_PL" charset="utf-8">
 
   <msg key="Absences">Nieobecności</msg>
   <msg key="Accounts_Payable">Zobowiązania</msg>
@@ -12,8 +12,14 @@
   <msg key="Cost_Centers">Centra Kosztów</msg>
   <msg key="Cost_Items">Koszt Elementy</msg>
   <msg key="create">utwórz</msg>
+  <msg key="Created">Utworzony</msg>
+  <msg key="Creator">Utworzył</msg>
+  <msg key="Customer_Documents">Dokumenty Klientów</msg>
+  <msg key="Customer_Invoice">Faktura Klienta</msg>
   <msg key="Customer_Links">Klient Linki</msg>
   <msg key="Customers">Klienci</msg>
+  <msg key="Deleted">Usunięty</msg>
+  <msg key="Delivery_Note">Protokół Dostawy</msg>
   <msg key="Description">Opis</msg>
   <msg key="Document">Dokument</msg>
   <msg key="Document_Status">Dokument Status</msg>
@@ -22,16 +28,27 @@
   <msg key="Due">Opłata</msg>
   <msg key="Due_Date">Termin Płatności</msg>
   <msg key="Edit_Cost">Edytuj Koszt</msg>
+  <msg key="Employee_Salary">Wynagrodzenie Pracownika</msg>
+  <msg key="Expense_Bundle">Pakiet Kosztów</msg>
+  <msg key="Expense_Item">Wyszczególnienie Koszty</msg>
+  <msg key="Expense_Planned_Cost">Zaplanowane Koszty</msg>
   <msg key="Expenses">Wydatki</msg>
+  <msg key="Export_Finance_to_CSV">Eksportuj Finanse do CSV</msg>
+  <msg key="Filed">Wniesiony</msg>
+  <msg key="Filter_Costs">Filtr Kosztów</msg>
   <msg key="Filter_Documents">Filtruj Dokumenty</msg>
   <msg key="Finance">Finanse</msg>
   <msg key="finance">finanse</msg>
-  <msg key="Finance_Home">Finanse Strona Główna</msg>
+  <msg key="Finance_Home">Finanse</msg>
   <msg key="Finance_Summary">Finanse Podsumowanie</msg>
   <msg key="Financial_Documents">Dokumenty Finansowe</msg>
+  <msg key="Financial_Indicators_Timeline">Wskaźniki Finansowe</msg>
   <msg key="Financial_Summary">Podsumowanie Finansowe</msg>
   <msg key="Go">Idź</msg>
   <msg key="Grand_Total">Razem</msg>
+  <msg key="Help_Blurb">Pomoc Dotycząca Strony</msg>
+  <msg key="InterCo_Invoice">Faktura Zagraniczna</msg>
+  <msg key="InterCo_Quote">Cena Zagraniczna</msg>
   <msg key="lt_Create_a_new_purchase">Utwórz nowe polecenie zakupu</msg>
   <msg key="lt_No_financial_document">Nie ma jeszcze dokumentó finansowych dla tego projektu</msg>
   <msg key="lt_There_are_currently_n">Brak kosztów spełniających wybrane kryteria</msg>
@@ -47,9 +64,11 @@ While this is OK in general, it will keep us from calculating a single profit&am
   <msg key="New_Cost">Nowy Koszt</msg>
   <msg key="New_Cost_Item">Nowy Element Kosztu</msg>
   <msg key="New_Customer_Docs">Utwórz Nowy Dokument Klienta</msg>
+  <msg key="New_Customer_Documents">Nowe Dokumenty Klienta</msg>
   <msg key="New_Customer_Invoices_Quotes">Nowa Faktura Klienta&amp; Wycena</msg>
   <msg key="New_Provider_Bills_POs">Nowe Zamówienia dostawców i faktury</msg>
   <msg key="New_Provider_Docs">Utwórz Nowy Dokument Dostawcy</msg>
+  <msg key="New_Provider_Documents">Nowy Dostawca Dokumentów</msg>
   <msg key="New_Timesheet_Invoice">Nowa Faktura z godzin pracy</msg>
   <msg key="New_Trans_Invoice">Nowa Faktura tłumaczenie</msg>
   <msg key="Next_Page">Następna Strona</msg>
@@ -57,9 +76,12 @@ While this is OK in general, it will keep us from calculating a single profit&am
   <msg key="Options">Opcje:</msg>
   <msg key="Outdated_Message">Ostrzeżenie nieaktualne kursy walut</msg>
   <msg key="Outdated_since_x_days">Nieaktualny od %days% dni</msg>
+  <msg key="Outstanding">Zaległy</msg>
   <msg key="Paid">Zapłacono</msg>
   <msg key="Paid_Amount">Suma Zapłacona</msg>
   <msg key="Paid_Currency">Waluta Płatności</msg>
+  <msg key="Partially_Paid">Częściowo Zapłacone</msg>
+  <msg key="Past_Due">Przeterminowany</msg>
   <msg key="Payment_Days">Termin Płatności</msg>
   <msg key="Payments">Płatnośći</msg>
   <msg key="Please_Select">Proszę wybrać</msg>
@@ -69,18 +91,31 @@ While this is OK in general, it will keep us from calculating a single profit&am
   <msg key="Print_Template">Szablon Wydruku</msg>
   <msg key="Project">Projekt</msg>
   <msg key="Provider">Dostawca</msg>
+  <msg key="Provider_Bill">Rachunek Dostawcy</msg>
   <msg key="Provider_Bills">Rachunki Dostawcy</msg>
+  <msg key="Provider_Documents">Dokumenty Dostawcze</msg>
   <msg key="Provider_Links">Dostawca Linki</msg>
+  <msg key="Provider_Receipt">Dokument Dostawcy</msg>
   <msg key="Providers">Dostawcy</msg>
+  <msg key="Purchase_Order">Zamówienie</msg>
   <msg key="Purchase_Orders">Polecenia Zakupu</msg>
+  <msg key="Quote">Wycena</msg>
   <msg key="Real_Costs">Koszt Rzeczywisty</msg>
+  <msg key="Rejected">Odrzucony</msg>
+  <msg key="Repeating_Cost">Powtórny Koszt</msg>
   <msg key="Repeating_Costs">Koszt Powtarzalny</msg>
+  <msg key="Reports">Raporty</msg>
+  <msg key="Requested">Oczekiwany</msg>
   <msg key="Save">Zachowaj</msg>
   <msg key="Status">Status</msg>
   <msg key="TAX">Podatek</msg>
   <msg key="The_exchange_rates_are_outdated">Kursy walut dla następujących walutach są przestarzałe. Proszę skontaktować się z administratorem systemu, aby zaktualizować następujące kursy walut:</msg>
   <msg key="Timesheet_Budget">Budżet w ramach harmonogramu pracy</msg>
+  <msg key="Timesheet_Cost">Koszt Czasu Pracy</msg>
   <msg key="Timesheet_Costs">Koszty Czasu Pracy</msg>
+  <msg key="Timesheet_Hours">Godziny Czasu Pracy</msg>
+  <msg key="Top_10_Unpaid_Customer_Invoices">10 Pierwszych Niezapłaconych Faktur Klienta</msg>
+  <msg key="Top_10_Unpaid_Provider_Bills">10 Pierwszych Niezapłaconych Rachunków Dostawcy</msg>
   <msg key="Type">Rodzaj</msg>
   <msg key="VAT">Vat</msg>
   <msg key="Who_gets_the_money">Kto otrzymuje pieniądze?</msg>
