@@ -13,7 +13,7 @@
   <msg key="Ad_hoc_provider_name">Lieferant</msg>
   <msg key="Admin">Admin</msg>
   <msg key="Admin_Cost_Centers">Admin Kostenstellen</msg>
-  <msg key="AdminCostCenter">Admin Kostenstellen</msg>
+  <msg key="AdminCostCenter">Admin - Kostenstellen</msg>
   <msg key="Administration">Admin</msg>
   <msg key="All_Costs">Alle Kosten</msg>
   <msg key="Amount">Betrag</msg>
@@ -27,13 +27,13 @@
   <msg key="context">Kontext</msg>
   <msg key="Cost_Center">Kostenstelle</msg>
   <msg key="Cost_Center_help">&lt;ul&gt;
-&lt;li&gt;Bitte setzen Sie den &#39;Kostenstellen Code&#39; richtig, um die Kostenstellen in richtiger Ordnung anzuzeigen. Bitte benutzen Sie auf die Kontexthilfe oben auf dieser Seite für weitergehende Informationen.&lt;/li&gt;
-&lt;li&gt;Bitte löschen Sie keine Kostenstellen in einem produktiven System. Wenn möglich, stellen Sie Kostenstellen einfach auf &#39;inaktiv&#39;.&lt;/li&gt;
+&lt;li&gt;Bitte setzen Sie den ?Kostenstellen-Code? richtig, um die Kostenstellen in richtiger Ordnung anzuzeigen. Bitte benutzen Sie die Kontexthilfe oben auf dieser Seite für weitergehende Informationen.&lt;/li&gt;
+&lt;li&gt;Bitte löschen Sie keine Kostenstellen in einem produktiven System. Wenn möglich, stellen Sie Kostenstellen einfach auf ?inaktiv?.&lt;/li&gt;
 &lt;/ul&gt;</msg>
   <msg key="Cost_Center_permissions_help">Costenstelle Hilfe zu Berechtigungen</msg>
   <msg key="Cost_Centers">Kostenstellen</msg>
   <msg key="Cost_Items">Kosten</msg>
-  <msg key="CostCenter">Kostenstelle Code</msg>
+  <msg key="CostCenter">Kostenstellen-Code</msg>
   <msg key="CostCenter_short">KC</msg>
   <msg key="CostCenterStatus">Status</msg>
   <msg key="create">create</msg>
@@ -73,16 +73,16 @@
   <msg key="Filter_Documents">Dokumente filtern</msg>
   <msg key="Finance">Finanzen</msg>
   <msg key="finance">Finanzen</msg>
-  <msg key="Finance_Dashboard">Finanzen Dashboard</msg>
-  <msg key="Finance_Home">Finanzen Übersicht</msg>
-  <msg key="Finance_List_Complete">Finanzen Liste vollständig</msg>
+  <msg key="Finance_Dashboard">Finanzen-Dashboard</msg>
+  <msg key="Finance_Home">Finanzen - Übersicht</msg>
+  <msg key="Finance_List_Complete">Finanzen-Liste vollständig</msg>
   <msg key="Finance_Summary">Kosten Zusammenfassung</msg>
   <msg key="Financial_Documents">Finanzdokumente</msg>
   <msg key="Financial_Indicators_Timeline">Zeitleiste Finanzindikatoren</msg>
   <msg key="Financial_Summary">Finanzielle Zusammenfassung</msg>
   <msg key="Go">Los</msg>
   <msg key="Grand_Total">Gesamtsumme</msg>
-  <msg key="Help_Blurb">Finanzen Hilfe</msg>
+  <msg key="Help_Blurb">Finanzen - Hilfe</msg>
   <msg key="InheritFrom">Erben von</msg>
   <msg key="Investment">Investition</msg>
   <msg key="Invoice">Rechnungen</msg>
@@ -108,7 +108,7 @@
   <msg key="lt_Cost_Item_Administrat">Admin Kostenelemente</msg>
   <msg key="lt_Create_a_new_purchase">Neuer Auftrag</msg>
   <msg key="lt_Didnt_find_the_the_vi">Die Sicht &#39;%$view_name%&#39; wurde nicht gefunden.</msg>
-  <msg key="lt_Distribute_costs_acco">Verteilung der Kosten auf Basis von Zeiterfassungsinformationen</msg>
+  <msg key="lt_Distribute_costs_acco">Verteilung der Kosten auf Basis von erfassten Stunden</msg>
   <msg key="lt_Finance_high-level_de">Finanzen Beschreibung</msg>
   <msg key="lt_No_financial_document">Keine Finanzdokumente für dieses Projekt gefunden</msg>
   <msg key="lt_There_are_currently_n">Keine Kosten gefunden für die ausgewählten Filterkriterien</msg>
@@ -187,8 +187,8 @@ Dieses Finanzdokument enhält mehr als eine Währung.</msg>
   <msg key="The_exchange_rates_are_outdated">Die Wechselkurse für die folgenden Währungen sind veraltet. Bitte kontaktieren sie ihren Systemadministrator um die folgenden Wechselkurse zu aktualisieren:</msg>
   <msg key="Timesheet_Budget">Zeiterfassungsbudget</msg>
   <msg key="Timesheet_Costs">Zeiterfassungskosten</msg>
-  <msg key="Top_10_Unpaid_Customer_Invoices">Top 10 unbezahlte Kundenrechnungen</msg>
-  <msg key="Top_10_Unpaid_Provider_Bills">Top 10 unbezahlte Lieferantenrechnungen</msg>
+  <msg key="Top_10_Unpaid_Customer_Invoices">Top 10 - Unbezahlte Kundenrechnungen</msg>
+  <msg key="Top_10_Unpaid_Provider_Bills">Top 10 - Unbezahlte Lieferantenrechnungen</msg>
   <msg key="TS_Budget">Budget Zeiterfassung</msg>
   <msg key="TS_Costs">Kosten Zeiterfassung</msg>
   <msg key="Type">Typ</msg>
