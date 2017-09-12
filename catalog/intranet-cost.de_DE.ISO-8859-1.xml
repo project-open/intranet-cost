@@ -67,7 +67,7 @@
   <msg key="Exp_Costs">Erwartete Kosten</msg>
   <msg key="Expense_Budget">Expense Budget</msg>
   <msg key="Expenses">Andere Kosten</msg>
-  <msg key="Export_Finance_to_CSV">Finanzen als CSV exportieren</msg>
+  <msg key="Export_Finance_to_CSV">Finanzen nach CSV exportieren</msg>
   <msg key="Filed">Archiviert</msg>
   <msg key="Filter_Costs">Filter</msg>
   <msg key="Filter_Documents">Dokumente filtern</msg>
