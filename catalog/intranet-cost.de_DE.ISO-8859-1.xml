@@ -12,7 +12,7 @@
   <msg key="Ad_hoc_paid_amount">Bezahlt</msg>
   <msg key="Ad_hoc_provider_name">Lieferant</msg>
   <msg key="Admin">Admin</msg>
-  <msg key="Admin_Cost_Centers">Admin Kostenstellen</msg>
+  <msg key="Admin_Cost_Centers">Admin - Kostenstellen</msg>
   <msg key="AdminCostCenter">Admin - Kostenstellen</msg>
   <msg key="Administration">Admin</msg>
   <msg key="All_Costs">Alle Kosten</msg>
@@ -30,7 +30,7 @@
 &lt;li&gt;Bitte setzen Sie den ?Kostenstellen-Code? richtig, um die Kostenstellen in richtiger Ordnung anzuzeigen. Bitte benutzen Sie die Kontexthilfe oben auf dieser Seite für weitergehende Informationen.&lt;/li&gt;
 &lt;li&gt;Bitte löschen Sie keine Kostenstellen in einem produktiven System. Wenn möglich, stellen Sie Kostenstellen einfach auf ?inaktiv?.&lt;/li&gt;
 &lt;/ul&gt;</msg>
-  <msg key="Cost_Center_permissions_help">Costenstelle Hilfe zu Berechtigungen</msg>
+  <msg key="Cost_Center_permissions_help">Kostenstelle Hilfe zu Berechtigungen</msg>
   <msg key="Cost_Centers">Kostenstellen</msg>
   <msg key="Cost_Items">Kosten</msg>
   <msg key="CostCenter">Kostenstellen-Code</msg>
@@ -43,7 +43,7 @@
   <msg key="Currency">Währung</msg>
   <msg key="Customer">Kunde</msg>
   <msg key="Customer_Invoices">Kundenrechnungen</msg>
-  <msg key="Customer_Links">Links Kunde</msg>
+  <msg key="Customer_Links">Kundenlinks</msg>
   <msg key="Customers">Kunden</msg>
   <msg key="Del">Löschen</msg>
   <msg key="Deleted">Gelöscht</msg>
@@ -51,7 +51,7 @@
   <msg key="DepartmentP">Abteilung?</msg>
   <msg key="DeptQuest">Abteilung?</msg>
   <msg key="Description">Beschreibung</msg>
-  <msg key="Direct_Parent">Direkte Eltern</msg>
+  <msg key="Direct_Parent">Oberobjekt</msg>
   <msg key="Document">Dokument</msg>
   <msg key="Document_Status">Dokumentenstatus</msg>
   <msg key="Document_Type">Typ</msg>
@@ -59,13 +59,13 @@
   <msg key="Due">Fällig</msg>
   <msg key="Due_Date">Fällig</msg>
   <msg key="Edit_Cost">Kosten bearbeiten</msg>
-  <msg key="Effective_Date">Effektives Datum</msg>
+  <msg key="Effective_Date">Rechnungsdatum</msg>
   <msg key="Employees">Mitarbeiter</msg>
   <msg key="Est_Profit">Erwarteter Gewinn</msg>
   <msg key="Exchange_Rates">Wechselkurse</msg>
   <msg key="Exp_Budget">Erwartetes Budget</msg>
   <msg key="Exp_Costs">Erwartete Kosten</msg>
-  <msg key="Expense_Budget">Expense Budget</msg>
+  <msg key="Expense_Budget">Budget für Ausgaben</msg>
   <msg key="Expenses">Andere Kosten</msg>
   <msg key="Export_Finance_to_CSV">Finanzen nach CSV exportieren</msg>
   <msg key="Filed">Archiviert</msg>
@@ -76,10 +76,10 @@
   <msg key="Finance_Dashboard">Finanzen-Dashboard</msg>
   <msg key="Finance_Home">Finanzen - Übersicht</msg>
   <msg key="Finance_List_Complete">Finanzen-Liste vollständig</msg>
-  <msg key="Finance_Summary">Kosten Zusammenfassung</msg>
+  <msg key="Finance_Summary">Finanzen - Zusammenfassung</msg>
   <msg key="Financial_Documents">Finanzdokumente</msg>
   <msg key="Financial_Indicators_Timeline">Zeitleiste Finanzindikatoren</msg>
-  <msg key="Financial_Summary">Finanzielle Zusammenfassung</msg>
+  <msg key="Financial_Summary">Finanzen Zusammenfassung</msg>
   <msg key="Go">Los</msg>
   <msg key="Grand_Total">Gesamtsumme</msg>
   <msg key="Help_Blurb">Finanzen - Hilfe</msg>
@@ -93,23 +93,23 @@
 &lt;li&gt;&lt;b&gt;Von Hand&lt;/b&gt;:&lt;br&gt;
     Dies ist die einfachste Option und lässt Ihnen komplette Freiheit.
 &lt;/li&gt;
-&lt;li&gt;&lt;b&gt;Auf Basis von Gantt Aufgaben (geplanten oder erfassten Stunden)&lt;/b&gt;:&lt;br&gt;
-    Erzeugen Sie ein neues Dokument auf Basis eines Gantt Projektplans und den
+&lt;li&gt;&lt;b&gt;Auf Basis von Gantt-Aufgaben (geplanten oder erfassten Stunden)&lt;/b&gt;:&lt;br&gt;
+    Erzeugen Sie ein neues Dokument auf Basis eines Gantt-Projektplans und den
     geplanten bzw. tatsächlich gleisteten Stunden.
 &lt;br&gt;
 &lt;/li&gt;
-&lt;li&gt;&lt;b&gt;Auf Basis von &amp;lt;Finanzdokuments&amp;gt;&lt;/b&gt;:&lt;br&gt;
+&lt;li&gt;&lt;b&gt;Auf Basis von &amp;lt;Finanzdokumenten&amp;gt;&lt;/b&gt;:&lt;br&gt;
     Erzeugen Sie ein neues Dokument, indem Sie die Daten eines existierenden
     Dokuments kopieren.
 &lt;/li&gt;
 &lt;/ul&gt;
 
 </msg>
-  <msg key="lt_Cost_Item_Administrat">Admin Kostenelemente</msg>
+  <msg key="lt_Cost_Item_Administrat">Admin - Kostenelemente</msg>
   <msg key="lt_Create_a_new_purchase">Neuer Auftrag</msg>
   <msg key="lt_Didnt_find_the_the_vi">Die Sicht &#39;%$view_name%&#39; wurde nicht gefunden.</msg>
   <msg key="lt_Distribute_costs_acco">Verteilung der Kosten auf Basis von erfassten Stunden</msg>
-  <msg key="lt_Finance_high-level_de">Finanzen Beschreibung</msg>
+  <msg key="lt_Finance_high-level_de">Finanzen - Beschreibung</msg>
   <msg key="lt_No_financial_document">Keine Finanzdokumente für dieses Projekt gefunden</msg>
   <msg key="lt_There_are_currently_n">Keine Kosten gefunden für die ausgewählten Filterkriterien</msg>
   <msg key="lt_This_is_the_homepage_">Dies ist die Finanz Übersicht. Hier finden Sie alle Information über finanzielle Vorgänge mit Kunden und Lieferanten.</msg>
@@ -128,7 +128,7 @@ Dieses Finanzdokument enhält mehr als eine Währung.</msg>
   <msg key="New_Provider_Bills_POs">Neue Lieferantenrechnungen &amp; -aufträge</msg>
   <msg key="New_Provider_Docs">Neues Lieferantendokument</msg>
   <msg key="New_Provider_Documents">Neue Lieferantendokumente</msg>
-  <msg key="New_Timesheet_Invoice">Neue Stunden Rechnung</msg>
+  <msg key="New_Timesheet_Invoice">Neue Zeiterfassungsrechnung</msg>
   <msg key="New_Trans_Invoice">Neue Ubersetzungsrechnung</msg>
   <msg key="Next_Page">Nächste Seite</msg>
   <msg key="Note">Notiz</msg>
@@ -162,9 +162,9 @@ Dieses Finanzdokument enhält mehr als eine Währung.</msg>
   <msg key="Please_Select">Bitte wählen</msg>
   <msg key="POs">Lieferantenaufträge</msg>
   <msg key="Preliminary_Costs">Vorläufige Kosten</msg>
-  <msg key="Preliminary_Total">Gesamt</msg>
+  <msg key="Preliminary_Total">Vorläufige Summe</msg>
   <msg key="Previous_Page">Letzte Seite</msg>
-  <msg key="Print_Template">Druck Vorlage</msg>
+  <msg key="Print_Template">Vorlage für Druckerausgabe</msg>
   <msg key="Profit">Gewinn</msg>
   <msg key="Project">Projekt</msg>
   <msg key="Provider">Lieferant</msg>
