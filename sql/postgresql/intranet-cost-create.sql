@@ -328,6 +328,10 @@ begin
 	delete from im_costs
 	where cost_id = p_cost_id;
 
+	-- Erase the im_cost
+	delete from im_biz_objects
+	where object_id = p_cost_id;
+
 	-- Erase the acs_rels entries pointing to this cost item
 	delete	from acs_rels
 	where	object_id_two = p_cost_id;
