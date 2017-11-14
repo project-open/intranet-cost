@@ -34,8 +34,15 @@ group by
 
 db_foreach cost_info $cost_sql {
     set project_hash($project_id) $project_name
-    set key "$project_id-$cost_type_id"
-    set costs($key) $amount
+
+    # Roll-up values to super cost types
+    set super_cost_type_ids [util_memoize [list db_list super_cats "select distinct category_id from (select $cost_type_id as category_id UNION select parent_id as category_id from im_category_hierarchy where child_id = $cost_type_id) t"]]
+    foreach ctid $super_cost_type_ids {
+	set key "$project_id-$ctid"
+	set val 0.0
+	if {[info exists costs($key)]} { set val $costs($key) }
+	set costs($key) [expr $val + $amount]
+    }
 }
 
 set lines ""
@@ -62,9 +69,9 @@ foreach project_id [array names project_hash] {
     }
 
     if { "" == $costs($project_id-3700) } {set costs($project_id-3700) 0 }
-    if { "" == $costs($project_id-3704) } {set costs($project_id-3700) 0 }
-    if { "" == $costs($project_id-3718) } {set costs($project_id-3700) 0 }
-    if { "" == $costs($project_id-3722) } {set costs($project_id-3700) 0 }
+    if { "" == $costs($project_id-3704) } {set costs($project_id-3704) 0 }
+    if { "" == $costs($project_id-3718) } {set costs($project_id-3718) 0 }
+    if { "" == $costs($project_id-3722) } {set costs($project_id-3722) 0 }
 
     set line "
  	<tr valign=middle>

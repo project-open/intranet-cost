@@ -113,7 +113,13 @@ ad_proc -public im_cost_type_is_invoice_or_quote_p { cost_type_id } {
     if {[im_category_is_a $cost_type_id [im_cost_type_provider_doc]]} { return 0 }
     if {[im_category_is_a $cost_type_id [im_cost_type_customer_doc]]} { return 1 }
 
-    set invoice_or_quote_p [expr $cost_type_id eq [im_cost_type_invoice] || $cost_type_id eq [im_cost_type_quote] || $cost_type_id eq [im_cost_type_delivery_note] || $cost_type_id eq [im_cost_type_interco_invoice] || $cost_type_id eq [im_cost_type_interco_quote]]
+    set invoice_or_quote_p [expr \
+				[im_category_is_a $cost_type_id [im_cost_type_invoice]] || \
+				[im_category_is_a $cost_type_id [im_cost_type_quote]] || \
+				[im_category_is_a $cost_type_id [im_cost_type_delivery_note]] || \
+				[im_category_is_a $cost_type_id [im_cost_type_interco_invoice]] || \
+				[im_category_is_a $cost_type_id [im_cost_type_interco_quote]] \
+			       ]
     return $invoice_or_quote_p
 }
 
@@ -123,7 +129,10 @@ ad_proc -public im_cost_type_is_invoice_or_bill_p { cost_type_id } {
     So we need to identify them:
 } {
     if {"" eq $cost_type_id} { set cost_type_id 0 }
-    set invoice_or_bill_p [expr $cost_type_id eq [im_cost_type_invoice] || $cost_type_id eq [im_cost_type_bill]]
+    set invoice_or_bill_p [expr \
+			       [im_category_is_a $cost_type_id [im_cost_type_invoice]] || \
+			       [im_category_is_a $cost_type_id [im_cost_type_bill]] \
+			      ]
     return $invoice_or_bill_p
 }
 
@@ -263,24 +272,36 @@ ad_proc -public im_cost_type_write_permissions_helper {
     set can_write [expr {[im_permission $user_id add_costs] || [im_permission $user_id add_invoices]}]
     if {!$can_write} { return [list] }
 
-    set result [db_list writable_cost_centers "
+    set writable_cost_type_ids [db_list writable_cost_types "
 	select distinct
 		ct.cost_type_id
-	from
-		im_cost_centers cc,
+	from	im_cost_centers cc,
 		im_cost_types ct,
 	        acs_permissions p,
 	        party_approved_member_map m,
 	        acs_object_context_index c,
 	        acs_privilege_descendant_map h
-	where
-		cc.cost_center_id = c.object_id
+	where	cc.cost_center_id = c.object_id
 		and ct.write_privilege = h.descendant
 	        and p.object_id = c.ancestor_id
 	        and m.member_id = :user_id
 	        and p.privilege = h.privilege
 	        and p.grantee_id = m.party_id
     "]
+
+    # Add sub-categories
+    set result [db_list sub_cats "
+	select distinct category_id from (
+		select	child_id as category_id
+		from	im_category_hierarchy
+		where	parent_id in ([join $writable_cost_type_ids ","])
+		UNION
+		select	category_id
+		from	im_categories
+		where	category_id in ([join $writable_cost_type_ids ","])
+	) t order by category_id
+    "]
+
     return $result
 }
 
@@ -434,6 +455,7 @@ ad_proc -public im_cost_type_options { {include_empty 1} } {
    set options [db_list_of_lists cost_type_options "
 	select cost_type, cost_type_id
 	from im_cost_types
+	order by cost_type_id
     "]
     if {$include_empty} { set options [linsert $options 0 { "" "" }] }
     return $options
@@ -829,10 +851,8 @@ ad_proc im_company_payment_balance_component { company_id } {
 			c.*,
 			im_exchange_rate(c.effective_date::date, c.currency, :default_currency) as xrate,
 			c.paid_currency
-		from
-			im_costs c
-		where
-			c.cost_type_id = $cust_prov_type_id and
+		from	im_costs c
+		where	c.cost_type_id in (select * from im_sub_categories(:cust_prov_type_id) and
 			$company_sql
 		) c
 	order by
@@ -1061,7 +1081,6 @@ ad_proc im_costs_base_component {
     set payment_currency ""
 
     db_foreach recent_costs $costs_sql {
-
 	append cost_html "
 		<tr$bgcolor([expr {$ctr % 2}])>
 		  <td><a href=\"$url$cost_id\">[string range $cost_name 0 20]</a></td>
@@ -1108,11 +1127,7 @@ ad_proc im_costs_base_component {
 
 	# Project Documents:
 	if {"" != $project_id} {
-
-	    append cost_html "
-	<tr class=rowplain>
-	  <td colspan=$colspan>\n"
-
+	    append cost_html "<tr class=rowplain><td colspan=$colspan>\n"
 
 	    # Customer invoices: customer = Project Customer, provider = Internal
 	    set customer_id [util_memoize [list db_string project_customer "select company_id from im_projects where project_id = $project_id" -default ""]]
@@ -1297,15 +1312,23 @@ ad_proc im_costs_project_finance_component {
 
     # If user = freelancer limit docs to PO
     if { [im_profile::member_p -profile_id [im_freelance_group_id] -user_id $user_id] } {
-	set limit_to_freelancers "and ci.cost_type_id = [im_cost_type_po] "
+	set limit_to_freelancers "and ci.cost_type_id in (select * from im_sub_categories([im_cost_type_po]) "
     }
     # If user = inco customer limit docs to Quotes & Invoices & InterCo Quotes & InterCo Invoices
     if { [im_profile::member_p -profile_id [im_inco_customer_group_id] -user_id $user_id] } {
-	set limit_to_inco_customers "and ci.cost_type_id in ( [im_cost_type_quote],[im_cost_type_invoice],[im_cost_type_interco_invoice],[im_cost_type_interco_quote] ) "
+	set limit_to_inco_customers "and ci.cost_type_id in ( 
+		select * from im_sub_categories([im_cost_type_quote]) UNION
+		select * from im_sub_categories([im_cost_type_invoice]) UNION
+		select * from im_sub_categories([im_cost_type_interco_invoice]) UNION
+		select * from im_sub_categories([im_cost_type_interco_quote])
+	) "
     }
     # If user = customer limit docs to Quotes & Invoices
     if { [im_profile::member_p -profile_id [im_customer_group_id] -user_id $user_id] } {
-	set limit_to_customers "and ci.cost_type_id in ( [im_cost_type_quote],[im_cost_type_invoice] ) "
+	set limit_to_customers "and ci.cost_type_id in ( 
+		select * from im_sub_categories([im_cost_type_quote]) UNION
+		select * from im_sub_categories([im_cost_type_invoice])
+	) "
     }
     
     set cost_type_excludes [list [im_cost_type_employee] [im_cost_type_repeating] [im_cost_type_expense_item]]
@@ -1417,11 +1440,11 @@ ad_proc im_costs_project_finance_component {
 	    }
 
 	    regsub -all " " $cost_type "_" cost_type_subs
-	    set cost_type [lang::message::lookup "" intranet-core.$cost_type_subs $cost_type]
+	    set cost_type_l10n [lang::message::lookup "" intranet-core.$cost_type_subs $cost_type]
 
 	    append cost_html "
 		<tr class='rowplain'>
-		  <td colspan=99><span class='table_interim_title'>$cost_type</span></td>
+		  <td colspan=99><span class='table_interim_title'>$cost_type_l10n</span></td>
 		</tr>\n"
 
 	    set old_cost_type_id $cost_type_id
@@ -1440,7 +1463,7 @@ ad_proc im_costs_project_finance_component {
 	}
 
 	set company_name ""
-	if {$cost_type_id == [im_cost_type_invoice] || $cost_type_id == [im_cost_type_quote] || $cost_type_id == [im_cost_type_delivery_note] || $cost_type_id == [im_cost_type_interco_invoice] || $cost_type_id == [im_cost_type_interco_quote]} {
+	if {[im_category_is_a $cost_type_id [im_cost_type_invoice]] || [im_category_is_a $cost_type_id [im_cost_type_quote]] || [im_category_is_a $cost_type_id [im_cost_type_delivery_note]] || [im_category_is_a $cost_type_id [im_cost_type_interco_invoice]] || [im_category_is_a $cost_type_id [im_cost_type_interco_quote]]} {
 	    set company_name $customer_name
 	} else {
 	    set company_name $provider_name
@@ -1465,7 +1488,7 @@ ad_proc im_costs_project_finance_component {
 	    set default_currency_read_p ""
 	}
 
-	if {$cost_type_id eq [im_cost_type_timesheet]} { set company_name "" }
+	if {[im_category_is_a $cost_type_id [im_cost_type_timesheet]]} { set company_name "" }
 
 	append cost_html "
 	<tr $bgcolor([expr {$ctr % 2}])>
@@ -1778,6 +1801,21 @@ ad_proc im_costs_project_finance_component {
 }
 
 
+ad_proc -public im_cost_financial_document_type_ids { } {
+    Returns an TCL list of all cost_type_ids of financial documents.
+} {
+    return [util_memoize [list db_list financial_doc_type_ids "
+	select	category_id
+	from	im_categories
+	where	(enabled_p is null OR enabled_p = 't') and
+		category_id in (
+			select * from im_sub_categories([im_cost_type_customer_doc])
+			UNION
+			select * from im_sub_categories([im_cost_type_provider_doc])
+		)
+    "]]
+}
+
 ad_proc -public im_cost_type_select { 
     select_name 
     { default "" } 
@@ -1806,15 +1844,7 @@ ad_proc -public im_cost_type_select {
     # Restrict to specific subtypes of FinDocs
     switch [string tolower $cost_item_group] {
 	"financial_doc" {
-	    append sql "\n\t\tand c.category_id in (
-		[im_cost_type_invoice],
-		[im_cost_type_quote],
-		[im_cost_type_bill],
-		[im_cost_type_po],
-		[im_cost_type_delivery_note],
-		[im_cost_type_interco_invoice],
-		[im_cost_type_interco_quote]
-	    )"
+	    append sql "\n\t\tand c.category_id in ([join [im_cost_financial_document_type_ids] ","])"
 	}
     }
 
@@ -1822,6 +1852,9 @@ ad_proc -public im_cost_type_select {
 	ns_set put $bind_vars super_type_id $super_type_id
 	append sql "\n	and c.category_id in ([join [im_sub_categories $super_type_id] ","])"
     }
+
+    append sql "\n   order by coalesce(sort_order, category_id)"
+
     return [im_selection_to_select_box $bind_vars category_select $sql $select_name $default]
 }
 
@@ -2068,9 +2101,13 @@ ad_proc -public im_cost_update_project_cost_cache {
     }
 
     # Calculate the subtotals per cost type
+    # Roll up the category hierarchy
     db_foreach subtotals $subtotals_sql {
-	if {"" == $amount_converted} { set amount_converted 0 }
-        set subtotals($cost_type_id) $amount_converted
+	if {"" == $amount_converted} { set amount_converted 0.0 }
+	set super_cost_type_ids [util_memoize [list db_list super_cats "select distinct category_id from (select $cost_type_id as category_id UNION select parent_id as category_id from im_category_hierarchy where child_id = $cost_type_id) t"]]
+	foreach id $super_cost_type_ids {
+	    set subtotals($id) [expr $amount_converted + $subtotals($id)]
+	}
     }
 
     # Check if the intranet-planning package is installed and
@@ -2117,7 +2154,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 				coalesce(pi.item_project_member_hourly_cost, :default_hourly_cost) as hourly_cost
 			from	im_planning_items pi
 			where	pi.item_object_id = :project_id and
-				pi.item_cost_type_id = [im_cost_type_timesheet_hours]
+				pi.item_cost_type_id in (select * from im_sub_categories([im_cost_type_timesheet_hours]))
 			group by 
 				pi.item_project_member_id,
 				pi.item_project_member_hourly_cost
@@ -2295,7 +2332,12 @@ ad_proc -public im_cost_project_document_icons_helper {
 	where	main_p.project_id = :project_id and
 		p.tree_sortkey between main_p.tree_sortkey and tree_right(main_p.tree_sortkey) and
 		p.project_id = ci.project_id and
-		ci.cost_type_id in ([im_cost_type_invoice], [im_cost_type_quote], [im_cost_type_bill], [im_cost_type_po])
+		ci.cost_type_id in (
+			select * from im_sub_categories([im_cost_type_invoice]) union
+			select * from im_sub_categories([im_cost_type_quote]) union
+			select * from im_sub_categories([im_cost_type_bill]) union
+			select * from im_sub_categories([im_cost_type_po])
+		)
 	order by
 		ci.cost_type_id,
 		ci.effective_date desc
