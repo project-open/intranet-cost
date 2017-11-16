@@ -200,6 +200,7 @@ ad_form -extend -name cost -on_request {
                 cost_id = :cost_id
     "
 
+    im_audit -object_type "im_cost" -object_id $cost_id -action after_create -status_id $cost_status_id -type_id $cost_type_id
 
 } -edit_data {
 
@@ -239,7 +240,10 @@ ad_form -extend -name cost -on_request {
                 note            	= :note
 	where
 		cost_id = :cost_id
-"
+    "
+
+    im_audit -object_type "im_cost" -object_id $cost_id -action after_update -status_id $cost_status_id -type_id $cost_type_id
+
 } -on_submit {
 
 	ns_log Notice "new: on_submit"
