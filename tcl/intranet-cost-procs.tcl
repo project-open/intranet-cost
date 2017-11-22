@@ -1207,10 +1207,12 @@ ad_proc im_costs_project_finance_component {
     </ul>
 
 } {
-
     # Is component shown?  
     if { ("" == $view_name || "standard" == $view_name) && $disable_view_standard_p } { return "" }
     if { "finance" == $view_name && $disable_view_finance_p } { return "" }
+
+    set show_subprojects_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowSubprojectsP" -default 0]
+    set show_payments_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowPaymentsP" -default 0]
 
     # pre-filtering 
     # permissions - beauty of code follows transparency and readability
@@ -1393,13 +1395,24 @@ ad_proc im_costs_project_finance_component {
 	  <tr>
 	    <td>[_ intranet-cost.Document]</td>
 	    <td>[lang::message::lookup "" intranet-cost.CostCenter_short "CC"]</td>
+    "
+    if {$show_subprojects_p} {
+        append cost_html "
+	    <td align='left'>[lang::message::lookup "" intranet-cost.Sub_Project "Sub-Project<br>/Task"]</td>
+        "
+    }
+    append cost_html "
 	    <td>[_ intranet-cost.Company]</td>
 	    <td>[_ intranet-cost.Due]</td>
 	    <td align='right'>[_ intranet-cost.Amount]</td>
-<!--
+    "
+    if {$show_payments_p} {
+        append cost_html "
 	    <td align='right'>[lang::message::lookup "" intranet-cost.Org_Amount "Org"]</td>
 	    <td align='right'>[_ intranet-cost.Paid]</td>
--->
+        "
+    }
+    append cost_html "
 	  </tr>
 	  </thead>
 	  <tbody>
@@ -1494,13 +1507,24 @@ ad_proc im_costs_project_finance_component {
 	<tr $bgcolor([expr {$ctr % 2}])>
 	  <td><nobr>$cost_url[string range $cost_name 0 30]</A></nobr></td>
 	  <td>$cost_center_code</td>
+        "
+	if {$show_subprojects_p} {
+            append cost_html "
+	      <td>$project_name</td>
+            "
+	}
+        append cost_html "
 	  <td>$company_name</td>
 	  <td><nobr>$calculated_due_date</nobr></td>
 	  <td align='right'><nobr>$amount_converted $default_currency_read_p</nobr></td>
-<!--
-	  <td align='right'><nobr>$amount_unconverted</td>
-	  <td align='right'><nobr>$amount_paid</nobr></td>
--->
+        "
+	if {$show_payments_p} {
+            append cost_html "
+	        <td align='right'><nobr>$amount_unconverted</td>
+	        <td align='right'><nobr>$amount_paid</nobr></td>
+            "
+	}
+	append cost_html "
 	</tr>\n"
 	incr ctr
     }

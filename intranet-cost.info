@@ -9,7 +9,7 @@
     <singleton-p>t</singleton-p>
     <auto-mount>intranet-cost</auto-mount>
 
-    <version name="5.0.2.4.0" url="http://www.project-open.net/download/apm/intranet-cost-5.0.2.4.0.apm">
+    <version name="5.0.2.4.1" url="http://www.project-open.net/download/apm/intranet-cost-5.0.2.4.1.apm">
         <owner url="mailto:frank.bergmann@project-open.com">Frank Bergmann</owner>
         <summary>Base for cost management</summary>
         <release-date>2016-11-15</release-date>
@@ -33,6 +33,8 @@
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="DefaultProviderBillPaymentDays"  default="60" description="Default value for payment to providers"/>
             <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="DefaultStartDate"  default="2000-01-01" description="Default start_date for financial list pages. This is used to improve performance in systems used since many years. Date format is YYYY-MM-DD."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="DefaultTimesheetHourlyCost"  default="30" description="Default internal cost per hour. This value is used to calculate the 'Timesheet Budget' value in the project's financial summary by multiplying with the Project Budget Hours value."/>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ProjectCostShowSubprojectsP"  default="0" description="Show sub-projects/tasks in the finance list portlet in the ProjectViewPage? Default is 0, because most companies will look at financial documents per main-project only."/>
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ProjectCostShowPaymentsP"  default="0" description="Show payments in the finance list portlet in the ProjectViewPage? Default is 0, because most companies don't use payment tracking anyway."/>
         </parameters>
 
     </version>
