@@ -1360,7 +1360,8 @@ ad_proc im_costs_project_finance_component {
 		im_category_from_id(ci.cost_type_id) as cost_type,
 		im_cost_center_code_from_id(ci.cost_center_id) as cost_center_code,
 		to_date(to_char(ci.effective_date,:date_format),:date_format) + ci.payment_days as calculated_due_date,
-		(select count(*) from acs_rels ar, im_projects arp where ar.object_id_two = ci.cost_id and ar.object_id_one = arp.project_id) as project_count
+		(select count(*) from acs_rels ar, im_projects arp where ar.object_id_two = ci.cost_id and ar.object_id_one = arp.project_id) as project_count,
+		(select min(project_id) from acs_rels ar, im_projects arp where ar.object_id_two = ci.cost_id and ar.object_id_one = arp.project_id) as min_project_id
 	from
 		im_costs ci
 			LEFT OUTER JOIN im_projects p ON (ci.project_id = p.project_id)
@@ -1510,10 +1511,13 @@ ad_proc im_costs_project_finance_component {
 	  <td>$cost_center_code</td>
         "
 	if {$show_subprojects_p} {
-	    if {$project_count > 1} {
+	    if {$project_count > 1 || $project_id ne $min_project_id} {
 		# Ugly case: The financial document is related to more than one project/task
 		set psql "select p.project_id, p.project_name from im_projects p, acs_rels r where r.object_id_one = p.project_id and r.object_id_two = :cost_id order by p.tree_sortkey"
 		set project_html ""
+		if {"" ne $project_id} { 
+		    append project_html "<li><a href=[export_vars -base "/intranet/projects/view" {project_id}]>$project_name</a>"
+		}
 		db_foreach tasks $psql { 
 		    append project_html "<li><a href=[export_vars -base "/intranet/projects/view" {project_id}]>$project_name</a><br>" 
 		}
