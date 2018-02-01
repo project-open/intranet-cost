@@ -1359,7 +1359,8 @@ ad_proc im_costs_project_finance_component {
 		im_category_from_id(ci.cost_status_id) as cost_status,
 		im_category_from_id(ci.cost_type_id) as cost_type,
 		im_cost_center_code_from_id(ci.cost_center_id) as cost_center_code,
-		to_date(to_char(ci.effective_date,:date_format),:date_format) + ci.payment_days as calculated_due_date
+		to_date(to_char(ci.effective_date,:date_format),:date_format) + ci.payment_days as calculated_due_date,
+		(select count(*) from acs_rels ar, im_projects arp where ar.object_id_two = ci.cost_id and ar.object_id_one = arp.project_id) as project_count
 	from
 		im_costs ci
 			LEFT OUTER JOIN im_projects p ON (ci.project_id = p.project_id)
@@ -1509,9 +1510,17 @@ ad_proc im_costs_project_finance_component {
 	  <td>$cost_center_code</td>
         "
 	if {$show_subprojects_p} {
-            append cost_html "
-	      <td>$project_name</td>
-            "
+	    if {$project_count > 1} {
+		# Ugly case: The financial document is related to more than one project/task
+		set psql "select p.project_id, p.project_name from im_projects p, acs_rels r where r.object_id_one = p.project_id and r.object_id_two = :cost_id order by p.tree_sortkey"
+		set project_html ""
+		db_foreach tasks $psql { 
+		    append project_html "<li><a href=[export_vars -base "/intranet/projects/view" {project_id}]>$project_name</a><br>" 
+		}
+		append cost_html "<td><ul>$project_html</ul></td>"
+	    } else {
+		append cost_html "<td><a href=[export_vars -base "/intranet/projects/view" {project_id}]>$project_name</a></td>"
+	    }
 	}
         append cost_html "
 	  <td>$company_name</td>
