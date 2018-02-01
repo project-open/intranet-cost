@@ -1261,7 +1261,7 @@ ad_proc im_costs_project_finance_component {
     set bgcolor(1) " class=rowodd "
     set colspan 7
     set date_format "YYYY-MM-DD"
-    set num_format "9999999999.99"
+    set num_format "9,999,999,999.99"
     set return_url [im_url_with_query]
 
     # Round to two digits by default
