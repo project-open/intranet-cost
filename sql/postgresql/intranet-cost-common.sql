@@ -87,6 +87,7 @@ SELECT im_category_new (3732,'InterCo Quote','Intranet Cost Type');
 SELECT im_category_new (3734,'Provider Receipt','Intranet Cost Type');
 -- Fake cost types for timesheet _hours_
 SELECT im_category_new (3736,'Timesheet Hours','Intranet Cost Type');
+SELECT im_category_new (3738,'Planned Purchase','Intranet Cost Type');
 -- reserved until 3799
 
 
@@ -95,6 +96,7 @@ SELECT im_category_hierarchy_new(3704,3710);
 SELECT im_category_hierarchy_new(3706,3710);
 -- Provider Receipt is a Provider Document
 SELECT im_category_hierarchy_new(3734,3710);
+SELECT im_category_hierarchy_new(3738,3710);
 
 
 
