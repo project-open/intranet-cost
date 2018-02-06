@@ -53,6 +53,7 @@ ad_proc -public im_cost_type_interco_quote {} { return 3732 }
 ad_proc -public im_cost_type_provider_receipt {} { return 3734 }
 # Fake cost types for timesheet _hours_
 ad_proc -public im_cost_type_timesheet_hours {} { return 3736 }
+ad_proc -public im_cost_type_planned_purchase {} { return 3738 }
 
 
 ad_proc -public im_cost_type_short_name { cost_type_id } { 
