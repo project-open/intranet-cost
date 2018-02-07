@@ -455,8 +455,7 @@ ad_proc -public im_cost_type_options { {include_empty 1} } {
 } {
    set options [db_list_of_lists cost_type_options "
 	select cost_type, cost_type_id
-	from im_cost_types
-	order by cost_type_id
+	from im_cost_types order by cost_type_id
     "]
     if {$include_empty} { set options [linsert $options 0 { "" "" }] }
     return $options
