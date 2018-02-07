@@ -466,7 +466,13 @@ ad_proc -public im_cost_status_options { {include_empty 1} } {
     Cost status options
 } {
     set options [db_list_of_lists cost_status_options "
-	select cost_status, cost_status_id from im_cost_status
+	select	category,
+		category_id
+	from	im_categories
+	where	category_type = 'Intranet Cost Status' and
+		(enabled_p is null OR 't' = enabled_p)
+	order by
+		coalesce(sort_order, 0), category_id
     "]
     if {$include_empty} { set options [linsert $options 0 { "" "" }] }
     return $options
