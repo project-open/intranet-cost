@@ -923,11 +923,11 @@ ad_proc im_company_payment_balance_component { company_id } {
     set payments_html $__adp_output
 
     return "
-<!--	[lang::message::lookup "" intranet-cost.Invoices "Invoices"] -->
+ <!--	[lang::message::lookup "" intranet-cost.Invoices "Invoices"] -->
 	$costs_html
 	<b>Sum: $costs_sum</b>
 	<br>&nbsp;<br>
-<!--	[lang::message::lookup "" intranet-cost.Payments "Payments"] -->
+ <!--	[lang::message::lookup "" intranet-cost.Payments "Payments"] -->
 	$payments_html<br>
 	<b>Sum: $payments_sum</b>
 	<br>&nbsp;<br>
@@ -1214,10 +1214,10 @@ ad_proc im_costs_project_finance_component {
 
     set show_subprojects_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowSubprojectsP" -default 0]
     set show_payments_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowPaymentsP" -default 0]
+    set show_status_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowStatusP" -default 1]
 
     # pre-filtering 
     # permissions - beauty of code follows transparency and readability
-    
     set view_docs_1_p 0
     set view_docs_2_p 0
     set view_docs_3_p 0
@@ -1404,8 +1404,11 @@ ad_proc im_costs_project_finance_component {
 	    <td align='left'>[lang::message::lookup "" intranet-cost.Sub_Project "Sub-Project<br>/Task"]</td>
         "
     }
+    append cost_html "<td>[_ intranet-cost.Company]</td>\n"
+    if {$show_status_p} {
+	append cost_html "<td>[_ intranet-cost.Status]</td>\n"
+    }
     append cost_html "
-	    <td>[_ intranet-cost.Company]</td>
 	    <td>[_ intranet-cost.Due]</td>
 	    <td align='right'>[_ intranet-cost.Amount]</td>
     "
@@ -1527,8 +1530,11 @@ ad_proc im_costs_project_finance_component {
 		append cost_html "<td><a href=[export_vars -base "/intranet/projects/view" {project_id}]>$project_name</a></td>"
 	    }
 	}
+        append cost_html "<td>$company_name</td>\n"
+	if {$show_status_p} {
+	    append cost_html "<td>$cost_status</td>\n"
+	}
         append cost_html "
-	  <td>$company_name</td>
 	  <td><nobr>$calculated_due_date</nobr></td>
 	  <td align='right'><nobr>$amount_converted $default_currency_read_p</nobr></td>
         "

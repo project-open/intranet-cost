@@ -35,6 +35,10 @@
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="DefaultTimesheetHourlyCost"  default="30" description="Default internal cost per hour. This value is used to calculate the 'Timesheet Budget' value in the project's financial summary by multiplying with the Project Budget Hours value."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ProjectCostShowSubprojectsP"  default="0" description="Show sub-projects/tasks in the finance list portlet in the ProjectViewPage? Default is 0, because most companies will look at financial documents per main-project only."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ProjectCostShowPaymentsP"  default="0" description="Show payments in the finance list portlet in the ProjectViewPage? Default is 0, because most companies don't use payment tracking anyway."/>
+
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ProjectCostShowStatusP"  default="1" description="Show status in the finance list portlet in the ProjectViewPage? Default is 1."/>
+
+
         </parameters>
 
     </version>
