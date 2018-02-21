@@ -172,8 +172,8 @@ set inconsistent_parents_sql "
 		im_cost_center_name_from_id(sortkey_parent_id) as sortkey_parent
 	from	(
 		select	cc.*,
-			(select cc1.cost_center_id from im_cost_centers cc1 where cc1.cost_center_code = substring(cc.cost_center_code from '^(.*)..$')) as code_parent_id,
-			(select	cc2.cost_center_id 
+			(select min(cc1.cost_center_id) from im_cost_centers cc1 where cc1.cost_center_code = substring(cc.cost_center_code from '^(.*)..$')) as code_parent_id,
+			(select	min(cc2.cost_center_id)
 			from	im_cost_centers cc2 
 			where	cc2.tree_sortkey = tree_ancestor_key(cc.tree_sortkey,tree_level(cc.tree_sortkey)-1)
 			) as sortkey_parent_id,
