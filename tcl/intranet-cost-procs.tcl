@@ -2212,7 +2212,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 	set ts_budget [db_string ts_budget $planning_ts_hours_sql -default 0.0]
 	if {"" == $ts_budget} { set ts_budget 0.0 }
 	set ts_budget [expr {$ts_budget}]
-	set subtotals(3726) $ts_budget
+	set subtotals([im_cost_type_timesheet_planned]) $ts_budget
 
     } else {
 
