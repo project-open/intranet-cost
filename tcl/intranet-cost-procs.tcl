@@ -2223,7 +2223,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 
     # Calculate timesheet preliminary cost based on assigned hours to tasks and hourly cost.
     set timesheet_assignment_value_sql "
-	select	round(sum(planned_units * percent / percent_assigned * hourly_cost)) as timesheet_cost
+	select	coalesce(round(sum(planned_units * percent / percent_assigned * hourly_cost)), 0.0) as timesheet_cost
 	from	(
 		select	sub_p.project_id as sub_project_id,
 			sub_p.project_name as sub_project_name,
@@ -2257,9 +2257,8 @@ ad_proc -public im_cost_update_project_cost_cache {
     
     # Default: Calculate timesheet_planned based on hourly budget
     if {0 == $subtotals([im_cost_type_timesheet_planned])} {
-	set budget_hours [db_string budget_hours "select project_budget_hours from im_projects where project_id = :project_id" -default ""]
-	if {"" == $budget_hours} { set budget_hours 0 }
-	set cost_timesheet_planned [expr {$budget_hours * $default_hourly_cost}]
+	set budget_hours [db_string budget_hours "select coalesce(project_budget_hours, 0) from im_projects where project_id = :project_id" -default "0"]
+	set cost_timesheet_planned [expr $budget_hours * $default_hourly_cost]
 	set subtotals([im_cost_type_timesheet_planned]) $cost_timesheet_planned
     }
 
