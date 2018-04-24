@@ -1449,11 +1449,10 @@ ad_proc im_costs_project_finance_component {
 		if {!$atleast_one_unreadable_p} {
 		    append cost_html "
 			<tr class=rowplain>
-			  <td colspan=[expr {$colspan-4}]>&nbsp;</td>
-			  <td align='right' colspan=2>
-			    <b><nobr>$subtotals($old_cost_type_id) $default_currency</nobr></b>
+			  <td colspan=[expr $colspan - 3 + $show_status_p + $show_subprojects_p]>&nbsp;</td>
+			  <td align='right' colspan=1>
+			    <b><nobr>[lc_numeric $subtotals($old_cost_type_id)] $default_currency</nobr></b>
 			  </td>
-			  <td colspan='3'>&nbsp;</td>
 			</tr>
 		    "
 		}
@@ -1559,9 +1558,9 @@ ad_proc im_costs_project_finance_component {
 	if {!$atleast_one_unreadable_p} {
 	    append cost_html "
 		<tr class=rowplain>
-		  <td colspan=[expr {$colspan-3}]>&nbsp;</td>
-		  <td colspan='99'>
-		    <b>$subtotals($old_cost_type_id) $default_currency</b>
+		  <td colspan=[expr $colspan - 3 + $show_status_p + $show_subprojects_p]>&nbsp;</td>
+		  <td colspan='1' align=right>
+		    <b><nobr>[lc_numeric $subtotals($old_cost_type_id)] $default_currency</nobr></b>
 		  </td>
 		</tr>
             "
