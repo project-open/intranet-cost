@@ -501,6 +501,14 @@ ad_proc -public im_investment_options { {include_empty 1} } {
     return $options
 }
 
+
+ad_proc -public im_default_currency { } { 
+    Returns the default system currency
+} {
+    return [parameter::get -package_id [apm_package_id_from_key intranet-cost] -parameter "DefaultCurrency" -default "EUR"]
+}
+
+
 ad_proc -public im_currency_options { 
     {-currency_list {} }
     {include_empty 1} 
