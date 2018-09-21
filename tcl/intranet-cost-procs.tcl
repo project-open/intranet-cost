@@ -289,6 +289,8 @@ ad_proc -public im_cost_type_write_permissions_helper {
 	        and p.privilege = h.privilege
 	        and p.grantee_id = m.party_id
     "]
+    lappend writable_cost_type_ids 0
+
 
     # Add sub-categories
     set result [db_list sub_cats "
