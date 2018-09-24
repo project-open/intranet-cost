@@ -8,7 +8,7 @@
     <singleton-p>t</singleton-p>
     <auto-mount>intranet-cost</auto-mount>
 
-    <version name="5.0.2.4.1" url="http://www.project-open.net/download/apm/intranet-cost-5.0.2.4.1.apm">
+    <version name="5.0.2.4.2" url="http://www.project-open.net/download/apm/intranet-cost-5.0.2.4.2.apm">
         <owner url="mailto:frank.bergmann@project-open.com">Frank Bergmann</owner>
         <summary>Base for cost management</summary>
         <release-date>2016-11-15</release-date>
@@ -35,10 +35,8 @@
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="DefaultTimesheetHourlyCost"  default="30" description="Default internal cost per hour. This value is used to calculate the 'Timesheet Budget' value in the project's financial summary by multiplying with the Project Budget Hours value."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ProjectCostShowSubprojectsP"  default="0" description="Show sub-projects/tasks in the finance list portlet in the ProjectViewPage? Default is 0, because most companies will look at financial documents per main-project only."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ProjectCostShowPaymentsP"  default="0" description="Show payments in the finance list portlet in the ProjectViewPage? Default is 0, because most companies don't use payment tracking anyway."/>
-
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ProjectCostShowStatusP"  default="1" description="Show status in the finance list portlet in the ProjectViewPage? Default is 1."/>
-
-
+            <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ProjectCostShowNotesP"  default="0" description="Show the note fild in a line below the main information? Default is 0, because normally there is no interesting information in the note..."/>
         </parameters>
 
     </version>

@@ -1230,6 +1230,7 @@ ad_proc im_costs_project_finance_component {
     set show_subprojects_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowSubprojectsP" -default 0]
     set show_payments_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowPaymentsP" -default 0]
     set show_status_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowStatusP" -default 1]
+    set show_notes_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowNotesP" -default 0]
 
     # pre-filtering 
     # permissions - beauty of code follows transparency and readability
@@ -1558,6 +1559,15 @@ ad_proc im_costs_project_finance_component {
 	        <td align='right'><nobr>$amount_paid</nobr></td>
             "
 	}
+
+	if {$show_notes_p && "" ne [string trim $note]} {
+	    append cost_html "</tr>\n<tr $bgcolor([expr {$ctr % 2}])>\n"
+            append cost_html "
+	        <td colspan=99>$note</td>
+            "
+	}
+
+
 	append cost_html "
 	</tr>\n"
 	incr ctr
