@@ -1226,6 +1226,11 @@ ad_proc im_costs_project_finance_component {
     # Is component shown?  
     if { ("" == $view_name || "standard" == $view_name) && $disable_view_standard_p } { return "" }
     if { "finance" == $view_name && $disable_view_finance_p } { return "" }
+    
+    # Check the permissions on the "Finance" tab
+    set menu_label "project_finance"
+    set read_menu_p [db_string read_menu "select im_object_permission_p(m.menu_id, :user_id, 'read') from im_menus m where m.label = :menu_label" -default "f"]
+    if {"t" ne $read_menu_p} { return "You don't have read permissions on the 'project_finance' tab." }
 
     set show_subprojects_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowSubprojectsP" -default 0]
     set show_payments_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowPaymentsP" -default 0]
