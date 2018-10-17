@@ -1035,11 +1035,10 @@ ad_proc im_costs_base_component {
     if {"" != $extra_select_clause} { set extra_select_clause ",\n\t$extra_select_clause" }
 
     set costs_sql "
-	select
+	select  o.object_type,
 		ci.*,
 		ci.paid_amount as payment_amount,
 		ci.paid_currency as payment_currency,
-		url.url,
 	        im_category_from_id(ci.cost_status_id) as cost_status,
 	        im_category_from_id(ci.cost_type_id) as cost_type,
 		to_date(to_char(ci.effective_date,'yyyymmdd'),'yyyymmdd') 
@@ -1048,7 +1047,6 @@ ad_proc im_costs_base_component {
 	from
 		im_costs ci,
 		acs_objects o,
-	        (select * from im_biz_object_urls where url_type=:view_mode) url,
 		(	select distinct
 				cc.cost_center_id,
 				ct.cost_type_id
@@ -1069,7 +1067,6 @@ ad_proc im_costs_base_component {
 		$extra_from_clause
 	where
 		ci.cost_id = o.object_id
-		and o.object_type = url.object_type
 		and ci.cost_center_id = readable_ccs.cost_center_id
 		and ci.cost_type_id = readable_ccs.cost_type_id
 		$extra_where_clause
@@ -1097,6 +1094,9 @@ ad_proc im_costs_base_component {
     set payment_currency ""
 
     db_foreach recent_costs $costs_sql {
+
+	set url [util_memoize [list db_string url "select url from im_biz_object_urls where object_type = '$object_type' and and url_type = 'view'" -default "/intranet-invoices/view?invoice_id="]]
+
 	append cost_html "
 		<tr$bgcolor([expr {$ctr % 2}])>
 		  <td><a href=\"$url$cost_id\">[string range $cost_name 0 20]</a></td>
