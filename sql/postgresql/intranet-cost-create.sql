@@ -338,6 +338,9 @@ begin
 	delete	from acs_rels
 	where	object_id_one = p_cost_id;
 
+	delete from acs_permissions 
+	where object_id = p_cost_id;
+
 	-- Erase the object
 	PERFORM acs_object__delete(p_cost_id);
 	return 0;
