@@ -1095,7 +1095,7 @@ ad_proc im_costs_base_component {
 
     db_foreach recent_costs $costs_sql {
 
-	set url [util_memoize [list db_string url "select url from im_biz_object_urls where object_type = '$object_type' and and url_type = 'view'" -default "/intranet-invoices/view?invoice_id="]]
+	set url [util_memoize [list db_string url "select url from im_biz_object_urls where object_type = '$object_type' and url_type = 'view'" -default "/intranet-invoices/view?invoice_id="]]
 
 	append cost_html "
 		<tr$bgcolor([expr {$ctr % 2}])>
