@@ -45,7 +45,6 @@ ad_proc -public im_cost_type_timesheet {} { return 3718 }
 ad_proc -public im_cost_type_expense_item {} { return 3720 }
 ad_proc -public im_cost_type_expense_bundle {} { return 3722 }
 ad_proc -public im_cost_type_delivery_note {} { return 3724 }
-ad_proc -public im_cost_type_timesheet_planned {} { return 3726 }
 ad_proc -public im_cost_type_timesheet_budget {} { return 3726 }
 ad_proc -public im_cost_type_expense_planned {} { return 3728 }
 ad_proc -public im_cost_type_interco_invoice {} { return 3730 }
@@ -2174,7 +2173,7 @@ ad_proc -public im_cost_update_project_cost_cache {
     }
     # Deal with configuration errors
     if {![info exists subtotals([im_cost_type_expense_planned])]} { set subtotals([im_cost_type_expense_planned]) 0 }
-    if {![info exists subtotals([im_cost_type_timesheet_planned])]} { set subtotals([im_cost_type_timesheet_planned]) 0 }
+    if {![info exists subtotals([im_cost_type_timesheet_budget])]} { set subtotals([im_cost_type_timesheet_budget]) 0 }
 
 
 
@@ -2241,7 +2240,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 	set ts_budget [db_string ts_budget $planning_ts_hours_sql -default 0.0]
 	if {"" == $ts_budget} { set ts_budget 0.0 }
 	set ts_budget [expr {$ts_budget}]
-	set subtotals([im_cost_type_timesheet_planned]) $ts_budget
+	set subtotals([im_cost_type_timesheet_budget]) $ts_budget
 
     }
 
@@ -2276,14 +2275,14 @@ ad_proc -public im_cost_update_project_cost_cache {
 	where	children = 0
     "
     # ad_return_complaint 1 [im_ad_hoc_query -format html $hourly_cost_sql]
-    set subtotals([im_cost_type_timesheet_planned]) [db_string timesheet_assignment_value $timesheet_assignment_value_sql]
+    set subtotals([im_cost_type_timesheet_budget]) [db_string timesheet_assignment_value $timesheet_assignment_value_sql]
 
     
     # Default: Calculate timesheet_planned based on hourly budget
-    if {0 == $subtotals([im_cost_type_timesheet_planned])} {
+    if {0 == $subtotals([im_cost_type_timesheet_budget])} {
 	set budget_hours [db_string budget_hours "select coalesce(project_budget_hours, 0) from im_projects where project_id = :project_id" -default "0"]
 	set cost_timesheet_planned [expr $budget_hours * $default_hourly_cost]
-	set subtotals([im_cost_type_timesheet_planned]) $cost_timesheet_planned
+	set subtotals([im_cost_type_timesheet_budget]) $cost_timesheet_planned
     }
 
 
@@ -2297,7 +2296,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 		cost_bills_cache = $subtotals([im_cost_type_bill]),
 		cost_purchase_orders_cache = $subtotals([im_cost_type_po]),
 		cost_timesheet_logged_cache = $subtotals([im_cost_type_timesheet]),
-		cost_timesheet_planned_cache = $subtotals([im_cost_type_timesheet_planned]),
+		cost_timesheet_planned_cache = $subtotals([im_cost_type_timesheet_budget]),
 		cost_expense_logged_cache = $subtotals([im_cost_type_expense_bundle]),
 		cost_expense_planned_cache = $subtotals([im_cost_type_expense_planned]),
 		cost_cache_dirty = null
