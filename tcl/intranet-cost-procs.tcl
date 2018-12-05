@@ -2107,6 +2107,9 @@ ad_proc -public im_cost_update_project_cost_cache {
     set default_hourly_cost [im_parameter -package_id [im_package_cost_id] "DefaultTimesheetHourlyCost" "" 30]
     set planning_exists_p [llength [info commands im_planning_item_status_active]]
 
+    # How should we calcualte the "Planned Timesheet" item in the project financial summary
+    set planned_hours_method [parameter::get -package_id [im_package_cost_id] -parameter "ProjectCostPlannedHoursMethod" -default "planned_units"]
+
     # Update the logged hours cache
     im_timesheet_update_timesheet_cache -project_id $project_id
 
@@ -2187,12 +2190,46 @@ ad_proc -public im_cost_update_project_cost_cache {
 	}
     }
 
-    # Check if the intranet-planning package is installed and
-    # calculate estimated values for expenses and timesheet hours.
+
+    # --------------------------------------------------------------------
+    # Calculate "Planned Timesheet" cost according to a parameter
+    # --------------------------------------------------------------------
+
+    # Planned Timesheet: Calculate timesheet_planned based on hourly budget
+    if {"project_budget_hours" eq $planned_hours_method} {
+	set budget_hours [db_string budget_hours "select coalesce(project_budget_hours, 0) from im_projects where project_id = :project_id" -default "0"]
+	set cost_timesheet_planned [expr round(100.0 * $budget_hours * $default_hourly_cost)/100.0]
+	set subtotals([im_cost_type_timesheet_budget]) $cost_timesheet_planned
+    }
+
+
+    # Default: Calculate timesheet_planned based on planned_units of all activities below the main project
+    if {"planned_units" eq $planned_hours_method} {
+	set budget_hours [db_string planned_units "
+		select	sum(t.planned_units)
+		from	im_projects sub_p,
+			im_timesheet_tasks t,
+			im_projects main_p
+		where	main_p.project_id = :project_id and
+			sub_p.tree_sortkey between main_p.tree_sortkey and tree_right(main_p.tree_sortkey) and
+			t.task_id = sub_p.project_id
+	" -default "0"]
+	set cost_timesheet_planned [expr $budget_hours * $default_hourly_cost]
+	set subtotals([im_cost_type_timesheet_budget]) $cost_timesheet_planned
+    }
+
+    # Planned Timesheet: Calculate based in intranet-planning table 'planning_items'
+    # This is only available in Enterprise Edition...
     # Planning is performed _only_ on the main project, so we don't
     # have to sum up (yet) the mounts from sub-projects.
-    if {0 && $planning_exists_p} {
-	ns_log Notice "im_cost_update_project_cost_cache: intranet-planning package exists"
+    if {"planning_items" eq $planned_hours_method} {
+	if {!$planning_exists_p} {
+	    ad_return_complaint 1 "<b>Package 'intranet-planning' is not installed</b>:<br>
+                You have set the parameter 'ProjectCostPlannedHoursMethod' to 'planning_items'.<br>
+                However, the package 'intranet-planning' is not installed in the system.<br>
+                Please change the parameter."
+	}
+
 	set planning_sql "
 		select	sum(pi.item_value) as amount_converted,
 			pi.item_cost_type_id
@@ -2241,50 +2278,51 @@ ad_proc -public im_cost_update_project_cost_cache {
 	if {"" == $ts_budget} { set ts_budget 0.0 }
 	set ts_budget [expr {$ts_budget}]
 	set subtotals([im_cost_type_timesheet_budget]) $ts_budget
-
     }
+
 
     # Calculate timesheet preliminary cost based on assigned hours to tasks and hourly cost.
-    set timesheet_assignment_value_sql "
-	select	coalesce(round(sum(planned_units * percent / percent_assigned * hourly_cost)), 0.0) as timesheet_cost
-	from	(
-		select	sub_p.project_id as sub_project_id,
-			sub_p.project_name as sub_project_name,
-			sub_p.tree_sortkey as sub_tree_sortkey,
-			(select count(*) from im_projects children where children.parent_id = sub_p.project_id) as children,
-			t.planned_units,
-			bom.percentage as percent,
-			coalesce((select sum(tbom.percentage)
-			from	acs_rels tr, im_biz_object_members tbom
-			where	tr.rel_id = tbom.rel_id and tr.object_id_one = sub_p.project_id and
-				tr.object_id_two not in (select member_id from group_distinct_member_map where group_id = [im_profile_skill_profile])
-			),0)+0.00000000000001 as percent_assigned,
-			coalesce(e.hourly_cost, :default_hourly_cost) as hourly_cost,
-			im_name_from_user_id(e.employee_id) as employee_name
-		from	im_projects main_p,
-			im_projects sub_p
-			LEFT OUTER JOIN im_timesheet_tasks t ON (sub_p.project_id = t.task_id)
-			LEFT OUTER JOIN acs_rels r ON (r.object_id_one = t.task_id)
-			LEFT OUTER JOIN im_biz_object_members bom ON (r.rel_id = bom.rel_id)
-			LEFT OUTER JOIN im_employees e ON (r.object_id_two = e.employee_id)
-		where	main_p.project_id = :project_id and
-			sub_p.tree_sortkey between main_p.tree_sortkey and tree_right(main_p.tree_sortkey) and
-			e.employee_id not in (select member_id from group_distinct_member_map where group_id = [im_profile_skill_profile]) and
-			bom.percentage is not null and bom.percentage != 0.0
-		) t
-	where	children = 0
-    "
-    # ad_return_complaint 1 [im_ad_hoc_query -format html $hourly_cost_sql]
-    set subtotals([im_cost_type_timesheet_budget]) [db_string timesheet_assignment_value $timesheet_assignment_value_sql]
-
-    
-    # Default: Calculate timesheet_planned based on hourly budget
-    if {0 == $subtotals([im_cost_type_timesheet_budget])} {
-	set budget_hours [db_string budget_hours "select coalesce(project_budget_hours, 0) from im_projects where project_id = :project_id" -default "0"]
-	set cost_timesheet_planned [expr $budget_hours * $default_hourly_cost]
-	set subtotals([im_cost_type_timesheet_budget]) $cost_timesheet_planned
+    if {"assigned_users_weighted_cost" eq $planned_hours_method} {
+	set timesheet_assignment_value_sql "
+		select	coalesce(round(sum(
+				planned_units * single_user_percent_assiged_to_task / sum_users_perc_assigned_to_task * hourly_cost
+			)), 0.0) as timesheet_cost
+		from	(
+			select	sub_p.project_id as sub_project_id,
+				sub_p.project_name as sub_project_name,
+				sub_p.tree_sortkey as sub_tree_sortkey,
+				(select count(*) from im_projects ch where ch.parent_id = sub_p.project_id) as children,
+				t.planned_units,
+				bom.percentage as single_user_percent_assiged_to_task,
+				coalesce((
+					select sum(tbom.percentage)
+					from	acs_rels tr, im_biz_object_members tbom
+					where	tr.rel_id = tbom.rel_id and tr.object_id_one = sub_p.project_id and
+						tr.object_id_two not in 
+							(select member_id from group_distinct_member_map where group_id = [im_profile_skill_profile])
+				),0)+0.00000000001 as sum_users_perc_assigned_to_task,
+				coalesce(e.hourly_cost, :default_hourly_cost) as hourly_cost,
+				im_name_from_user_id(e.employee_id) as employee_name
+			from	im_projects main_p,
+				im_projects sub_p
+				LEFT OUTER JOIN im_timesheet_tasks t ON (sub_p.project_id = t.task_id)
+				LEFT OUTER JOIN acs_rels r ON (r.object_id_one = t.task_id)
+				LEFT OUTER JOIN im_biz_object_members bom ON (r.rel_id = bom.rel_id)
+				LEFT OUTER JOIN im_employees e ON (r.object_id_two = e.employee_id)
+			where	main_p.project_id = :project_id and
+				sub_p.tree_sortkey between main_p.tree_sortkey and tree_right(main_p.tree_sortkey) and
+				e.employee_id not in (select member_id from group_distinct_member_map where group_id = [im_profile_skill_profile]) and
+				bom.percentage is not null and bom.percentage != 0.0
+			) t
+		where	children = 0		-- Ignore parent tasks with children
+        "
+	# ad_return_complaint 1 [im_ad_hoc_query -format html $hourly_cost_sql]
+	set subtotals([im_cost_type_timesheet_budget]) [db_string timesheet_assignment_value $timesheet_assignment_value_sql]
     }
-
+    
+    # --------------------------------------------------------------------
+    #
+    # --------------------------------------------------------------------
 
     # We can update the profit & loss because all financial documents
     # have been converted to default_currency
