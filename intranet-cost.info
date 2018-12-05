@@ -8,7 +8,7 @@
     <singleton-p>t</singleton-p>
     <auto-mount>intranet-cost</auto-mount>
 
-    <version name="5.0.2.4.2" url="http://www.project-open.net/download/apm/intranet-cost-5.0.2.4.2.apm">
+    <version name="5.0.2.4.3" url="http://www.project-open.net/download/apm/intranet-cost-5.0.2.4.3.apm">
         <owner url="mailto:frank.bergmann@project-open.com">Frank Bergmann</owner>
         <summary>Base for cost management</summary>
         <release-date>2016-11-15</release-date>
@@ -37,6 +37,7 @@
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ProjectCostShowPaymentsP"  default="0" description="Show payments in the finance list portlet in the ProjectViewPage? Default is 0, because most companies don't use payment tracking anyway."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ProjectCostShowStatusP"  default="1" description="Show status in the finance list portlet in the ProjectViewPage? Default is 1."/>
             <parameter datatype="number"  min_n_values="1"  max_n_values="1"  name="ProjectCostShowNotesP"  default="0" description="Show the note fild in a line below the main information? Default is 0, because normally there is no interesting information in the note..."/>
+            <parameter datatype="string"  min_n_values="1"  max_n_values="1"  name="ProjectCostPlannedHoursMethod"  default="planned_units" description="How does the system calculate the amount of 'planned timesheet cost' in the project's financial summary? There are theree options available: 'project_budget_hours': Takes the project_budget_hours field of the main project and multiplies with the DefaultTimesheetHourlyCost parameter. 'planning_items': Assumes that the project's timesheet budget is defined using the 'intranet-planning' packages, and calulates the sum of planned timesheet hours multiplied with the DefaultTimesheetHourlyCost parameter. This option is only available if the package intranet-planning is installed (Enterprise Edition). 'planned_units': Calculates the sum of all 'work' planned hours of all activities of the project and multiples with the DefaultTimesheetHourlyCost parameter. 'assigned_users_weighted_cost': Takes the activites and multiplies with the average hourly cost of the assigned users. Tasks without assigned users are not included, so this method only works for projects with complete resource assignments. Default is 'planned_units', because most organizations now use the GanttEditor."/>
         </parameters>
 
     </version>
