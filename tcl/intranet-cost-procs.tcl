@@ -1304,6 +1304,7 @@ ad_proc im_costs_project_finance_component {
     # Get a hash array of subtotals per cost_type
     array set subtotals [im_cost_update_project_cost_cache $project_id]
 
+
     # ----------------- Compose Main SQL Query --------------------------------
 
     set project_cost_ids_sql "
@@ -2206,7 +2207,7 @@ ad_proc -public im_cost_update_project_cost_cache {
     # Default: Calculate timesheet_planned based on planned_units of all activities below the main project
     if {"planned_units" eq $planned_hours_method} {
 	set budget_hours [db_string planned_units "
-		select	sum(t.planned_units)
+		select	COALESCE(sum(t.planned_units), 0)
 		from	im_projects sub_p,
 			im_timesheet_tasks t,
 			im_projects main_p
@@ -2214,6 +2215,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 			sub_p.tree_sortkey between main_p.tree_sortkey and tree_right(main_p.tree_sortkey) and
 			t.task_id = sub_p.project_id
 	" -default "0"]
+
 	set cost_timesheet_planned [expr $budget_hours * $default_hourly_cost]
 	set subtotals([im_cost_type_timesheet_budget]) $cost_timesheet_planned
     }
