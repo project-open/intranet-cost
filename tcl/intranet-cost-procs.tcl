@@ -1333,26 +1333,29 @@ ad_proc im_costs_project_finance_component {
 				)
     "
 
-
-    # If user = freelancer limit docs to PO
-    if { [im_profile::member_p -profile_id [im_freelance_group_id] -user_id $user_id] } {
-	set limit_to_freelancers "and ci.cost_type_id in (select * from im_sub_categories([im_cost_type_po])) "
-    }
-    # If user = inco customer limit docs to Quotes & Invoices & InterCo Quotes & InterCo Invoices
-    if { [im_profile::member_p -profile_id [im_inco_customer_group_id] -user_id $user_id] } {
-	set limit_to_inco_customers "and ci.cost_type_id in ( 
+    # Outdated stuff. We can now limit the access of customers
+    # and freelancers to financial documents via fi_read_purchase_order etcl
+    if {0} {
+	# If user = freelancer limit docs to PO
+	if { [im_profile::member_p -profile_id [im_freelance_group_id] -user_id $user_id] } {
+	    set limit_to_freelancers "and ci.cost_type_id in (select * from im_sub_categories([im_cost_type_po])) "
+	}
+	# If user = inco customer limit docs to Quotes & Invoices & InterCo Quotes & InterCo Invoices
+	if { [im_profile::member_p -profile_id [im_inco_customer_group_id] -user_id $user_id] } {
+	    set limit_to_inco_customers "and ci.cost_type_id in ( 
 		select * from im_sub_categories([im_cost_type_quote]) UNION
 		select * from im_sub_categories([im_cost_type_invoice]) UNION
 		select * from im_sub_categories([im_cost_type_interco_invoice]) UNION
 		select * from im_sub_categories([im_cost_type_interco_quote])
 	) "
-    }
-    # If user = customer limit docs to Quotes & Invoices
-    if { [im_profile::member_p -profile_id [im_customer_group_id] -user_id $user_id] } {
-	set limit_to_customers "and ci.cost_type_id in ( 
+	}
+	# If user = customer limit docs to Quotes & Invoices
+	if { [im_profile::member_p -profile_id [im_customer_group_id] -user_id $user_id] } {
+	    set limit_to_customers "and ci.cost_type_id in ( 
 		select * from im_sub_categories([im_cost_type_quote]) UNION
 		select * from im_sub_categories([im_cost_type_invoice])
 	) "
+	}
     }
     
     set cost_type_excludes [list [im_cost_type_employee] [im_cost_type_repeating] [im_cost_type_expense_item]]
