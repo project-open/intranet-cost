@@ -1207,9 +1207,13 @@ ad_proc im_costs_project_finance_component {
     Returns a HTML table containing a detailed summary of all
     financial activities of the project. <p>
 
+    ToDo:
+    - Add DynView dynamic columns and remove parameters
+
     The complexity of this component comes from several sources:
     <ul>
-    <li>We need to sum up the invoices and sort them into several
+    <li>We need to sum up the financial items and sort them into 
+        several
         "buckets" that correspond to the different cost types
         such as "customer invoices", "provider purchase orders",
         internal "timesheet costs" etc.
@@ -1306,7 +1310,6 @@ ad_proc im_costs_project_finance_component {
 
 
     # ----------------- Compose Main SQL Query --------------------------------
-
     set project_cost_ids_sql "
 		                select distinct cost_id
 		                from im_costs
@@ -1332,31 +1335,6 @@ ad_proc im_costs_project_finance_component {
 						and parent.project_id = :project_id
 				)
     "
-
-    # Outdated stuff. We can now limit the access of customers
-    # and freelancers to financial documents via fi_read_purchase_order etcl
-    if {0} {
-	# If user = freelancer limit docs to PO
-	if { [im_profile::member_p -profile_id [im_freelance_group_id] -user_id $user_id] } {
-	    set limit_to_freelancers "and ci.cost_type_id in (select * from im_sub_categories([im_cost_type_po])) "
-	}
-	# If user = inco customer limit docs to Quotes & Invoices & InterCo Quotes & InterCo Invoices
-	if { [im_profile::member_p -profile_id [im_inco_customer_group_id] -user_id $user_id] } {
-	    set limit_to_inco_customers "and ci.cost_type_id in ( 
-		select * from im_sub_categories([im_cost_type_quote]) UNION
-		select * from im_sub_categories([im_cost_type_invoice]) UNION
-		select * from im_sub_categories([im_cost_type_interco_invoice]) UNION
-		select * from im_sub_categories([im_cost_type_interco_quote])
-	) "
-	}
-	# If user = customer limit docs to Quotes & Invoices
-	if { [im_profile::member_p -profile_id [im_customer_group_id] -user_id $user_id] } {
-	    set limit_to_customers "and ci.cost_type_id in ( 
-		select * from im_sub_categories([im_cost_type_quote]) UNION
-		select * from im_sub_categories([im_cost_type_invoice])
-	) "
-	}
-    }
     
     set cost_type_excludes [list [im_cost_type_employee] [im_cost_type_repeating] [im_cost_type_expense_item]]
     
@@ -1385,8 +1363,12 @@ ad_proc im_costs_project_finance_component {
 		im_category_from_id(ci.cost_type_id) as cost_type,
 		im_cost_center_code_from_id(ci.cost_center_id) as cost_center_code,
 		to_date(to_char(ci.effective_date,:date_format),:date_format) + ci.payment_days as calculated_due_date,
-		(select count(*) from acs_rels ar, im_projects arp where ar.object_id_two = ci.cost_id and ar.object_id_one = arp.project_id) as project_count,
-		(select min(project_id) from acs_rels ar, im_projects arp where ar.object_id_two = ci.cost_id and ar.object_id_one = arp.project_id) as min_project_id
+		(select count(*) from acs_rels ar, im_projects arp 
+		 where ar.object_id_two = ci.cost_id and ar.object_id_one = arp.project_id
+		 ) as project_count,
+		(select min(project_id) from acs_rels ar, im_projects arp 
+		 where ar.object_id_two = ci.cost_id and ar.object_id_one = arp.project_id
+		) as min_project_id
 	from
 		im_costs ci
 			LEFT OUTER JOIN im_projects p ON (ci.project_id = p.project_id)
@@ -1395,12 +1377,10 @@ ad_proc im_costs_project_finance_component {
 		acs_objects o,
 		(select * from im_biz_object_urls where url_type=:view_mode) url
 	where
-		ci.cost_id = o.object_id
-		and o.object_type = url.object_type
-		and ci.cost_id in (
-			$project_cost_ids_sql
-		)
-        and ci.cost_type_id not in ([template::util::tcl_to_sql_list $cost_type_excludes])
+		ci.cost_id = o.object_id and
+		o.object_type = url.object_type and
+		ci.cost_id in ($project_cost_ids_sql) and
+		ci.cost_type_id not in ([template::util::tcl_to_sql_list $cost_type_excludes])
 		$limit_to_freelancers
 		$limit_to_inco_customers
 		$limit_to_customers
@@ -1409,15 +1389,9 @@ ad_proc im_costs_project_finance_component {
 		ci.effective_date desc
     "
 
-
     set cost_html "
 	<h1>[_ intranet-cost.Financial_Documents]</h1>
 	<table border=0 class='table_list_page'>
-	  <!-- <tr class='no_hover'>
-	    <td colspan=$colspan class=rowtitle>
-	      [_ intranet-cost.Financial_Documents]
-	    </td>
-	  </tr>-->
 	  <thead>
 	  <tr>
 	    <td>[_ intranet-cost.Document]</td>
@@ -1570,14 +1544,10 @@ ad_proc im_costs_project_finance_component {
 
 	if {$show_notes_p && "" ne [string trim $note]} {
 	    append cost_html "</tr>\n<tr $bgcolor([expr {$ctr % 2}])>\n"
-            append cost_html "
-	        <td colspan=99>$note</td>
-            "
+            append cost_html "<td colspan=99>$note</td>"
 	}
 
-
-	append cost_html "
-	</tr>\n"
+	append cost_html "</tr>\n"
 	incr ctr
     }
 
@@ -1620,7 +1590,7 @@ ad_proc im_costs_project_finance_component {
     # Hard "real" costs such as invoices, bills and timesheet
 
     set hard_cost_html "
-<table with=\"100%\">
+<table with=\"100%\" id=costs_hard_costs>
   <tr class=rowtitle>
     <td class=rowtitle colspan=2 align=center>[_ intranet-cost.Real_Costs]</td>
   </tr>
@@ -1658,7 +1628,7 @@ ad_proc im_costs_project_finance_component {
     # Preliminary (planned) Costs such as Quotes and Purchase Orders
 
     set prelim_cost_html "
-<table width=\"100%\">
+<table width=\"100%\" id=costs_preliminary_costs>
   <tr class=rowtitle>
     <td class=rowtitle colspan=2 align=center>[_ intranet-cost.Preliminary_Costs]</td>
   </tr>
@@ -2182,8 +2152,6 @@ ad_proc -public im_cost_update_project_cost_cache {
     if {![info exists subtotals([im_cost_type_expense_planned])]} { set subtotals([im_cost_type_expense_planned]) 0 }
     if {![info exists subtotals([im_cost_type_timesheet_budget])]} { set subtotals([im_cost_type_timesheet_budget]) 0 }
 
-
-
     # Calculate the subtotals per cost type
     # Roll up the category hierarchy
     db_foreach subtotals $subtotals_sql {
@@ -2288,17 +2256,12 @@ ad_proc -public im_cost_update_project_cost_cache {
 
     # Calculate timesheet preliminary cost based on assigned hours to tasks and hourly cost.
     if {"assigned_users_weighted_cost" eq $planned_hours_method} {
-	set timesheet_assignment_value_sql "
-		select	coalesce(round(sum(
-				planned_units * single_user_percent_assiged_to_task / sum_users_perc_assigned_to_task * hourly_cost
-			)), 0.0) as timesheet_cost
-		from	(
+	set timesheet_assignment_value_inner_sql "
 			select	sub_p.project_id as sub_project_id,
 				sub_p.project_name as sub_project_name,
-				sub_p.tree_sortkey as sub_tree_sortkey,
 				(select count(*) from im_projects ch where ch.parent_id = sub_p.project_id) as children,
 				t.planned_units,
-				bom.percentage as single_user_percent_assiged_to_task,
+				bom.percentage as user_percent_assigned_to_task,
 				coalesce((
 					select sum(tbom.percentage)
 					from	acs_rels tr, im_biz_object_members tbom
@@ -2306,7 +2269,11 @@ ad_proc -public im_cost_update_project_cost_cache {
 						tr.object_id_two not in 
 							(select member_id from group_distinct_member_map where group_id = [im_profile_skill_profile])
 				),0)+0.00000000001 as sum_users_perc_assigned_to_task,
-				coalesce(e.hourly_cost, :default_hourly_cost) as hourly_cost,
+				coalesce(
+					-- Convert based on the start_date of the activity
+					e.hourly_cost * im_exchange_rate(sub_p.start_date::date, e.currency, :default_currency),
+					:default_hourly_cost
+				) as hourly_cost,
 				im_name_from_user_id(e.employee_id) as employee_name
 			from	im_projects main_p,
 				im_projects sub_p
@@ -2316,18 +2283,63 @@ ad_proc -public im_cost_update_project_cost_cache {
 				LEFT OUTER JOIN im_employees e ON (r.object_id_two = e.employee_id)
 			where	main_p.project_id = :project_id and
 				sub_p.tree_sortkey between main_p.tree_sortkey and tree_right(main_p.tree_sortkey) and
-				e.employee_id not in (select member_id from group_distinct_member_map where group_id = [im_profile_skill_profile]) and
-				bom.percentage is not null and bom.percentage != 0.0
-			) t
-		where	children = 0		-- Ignore parent tasks with children
+				e.employee_id not in (select member_id from group_distinct_member_map where group_id = [im_profile_skill_profile])
         "
-	# ad_return_complaint 1 [im_ad_hoc_query -format html $hourly_cost_sql]
+#	ad_return_complaint 1 [im_ad_hoc_query -format html $timesheet_assignment_value_inner_sql]
+
+	# Aggregate by task, so that we can catch the case that there are no resources assigned to the task.
+	set timesheet_assignment_value_middle_sql "
+		select	sub_project_id,
+			sub_project_name,
+			max(planned_units) as task_planned_units,	-- DONT sum up here, there are multiple rows for multiple users assigned.
+			sum(user_percent_assigned_to_task) as user_percent_assigned_to_task,
+			round(sum(planned_units * user_percent_assigned_to_task / sum_users_perc_assigned_to_task * hourly_cost)::numeric,2) as cost_assigned_users
+		from	($timesheet_assignment_value_inner_sql) t
+		where	children = 0		-- Ignore parent tasks with children
+		group by
+			sub_project_id, sub_project_name
+        "
+#	ad_return_complaint 1 [im_ad_hoc_query -format html $timesheet_assignment_value_middle_sql]
+
+	# Aggregate everything together.
+	set timesheet_assignment_value_sql "
+		select	sum(
+				-- Take the cost of assigned users, 
+				-- or use default_hourly_cost for tasks without assignments
+				coalesce(cost_assigned_users, task_planned_units * :default_hourly_cost)
+			)
+		from	($timesheet_assignment_value_middle_sql) t
+        "
+#	ad_return_complaint 1 [im_ad_hoc_query -format html $timesheet_assignment_value_sql]
+
 	set subtotals([im_cost_type_timesheet_budget]) [db_string timesheet_assignment_value $timesheet_assignment_value_sql]
     }
     
     # --------------------------------------------------------------------
+    # Calculate the Expense Budget from planning_items if exists
+    # --------------------------------------------------------------------
+
+    set expense_planned_costs_exists_p [db_string exp_exists "select count(*) from im_costs where cost_type_id = [im_cost_type_expense_planned]"]
+    set planning_exists_p [im_table_exists "im_planning_items"]
+    if {$planning_exists_p && !$expense_planned_costs_exists_p} {
+	set expense_budget_from_expense_categories_sql "
+		select	sum(pi.item_value) as amount_converted
+		from	im_planning_items pi,
+			im_categories c
+		where	pi.item_object_id = :project_id and
+			pi.item_cost_type_id = c.category_id and
+			c.category_type = 'Intranet Expense Type'
+        "
+	set expense_budget [db_string expense_budget $expense_budget_from_expense_categories_sql -default 0]
+	if {"" eq $expense_budget} { set expense_budget 0.0 }
+	set subtotals([im_cost_type_expense_planned]) $expense_budget
+    }
+
+    
+    # --------------------------------------------------------------------
     #
     # --------------------------------------------------------------------
+
 
     # We can update the profit & loss because all financial documents
     # have been converted to default_currency
