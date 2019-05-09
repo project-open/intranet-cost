@@ -1282,8 +1282,8 @@ ad_proc im_costs_project_finance_component {
     # -- Nothing should overwrite that setting 
     # if {$show_details_p} { set show_admin_links_p 1 }
 
-    set bgcolor(0) " class=roweven "
-    set bgcolor(1) " class=rowodd "
+    set bgcolor(0) "roweven"
+    set bgcolor(1) "rowodd"
     set colspan 7
     set date_format "YYYY-MM-DD"
     set num_format "9,999,999,999.99"
@@ -1433,6 +1433,12 @@ ad_proc im_costs_project_finance_component {
     set old_cost_type_id 0
     db_foreach recent_costs $costs_sql {
 
+	# Create the list of costs per cost_type_id
+	set c ""
+	if {[info exists cost_hash($cost_type_id)]} { set c $cost_hash($cost_type_id) }
+	lappend c $cost_id
+	set cost_hash($cost_type_id) $c
+
 	# Status with translation
 	set cost_status [im_category_from_id $cost_status_id]
 
@@ -1460,7 +1466,10 @@ ad_proc im_costs_project_finance_component {
 
 	    append cost_html "
 		<tr class='rowplain'>
-		  <td colspan=99><span class='table_interim_title'>$cost_type_l10n</span></td>
+		    <td colspan=99>
+		        <input class=\"fold_in_link\" id=\"$cost_type_id\" type=\"button\" value=\"\" onclick=\"toggle_visibility($cost_type_id);\" fold_status=\"o\">
+			<span class='table_interim_title'>$cost_type_l10n</span>
+		    </td>
 		</tr>\n"
 
 	    set old_cost_type_id $cost_type_id
@@ -1507,7 +1516,7 @@ ad_proc im_costs_project_finance_component {
 	if {[im_category_is_a $cost_type_id [im_cost_type_timesheet]]} { set company_name "" }
 
 	append cost_html "
-	<tr $bgcolor([expr {$ctr % 2}])>
+	<tr class=\"$bgcolor([expr {$ctr % 2}]) row_visible\" id=\"cost_$cost_id\">
 	  <td><nobr>$cost_url[string range $cost_name 0 30]</A></nobr></td>
 	  <td>$cost_center_code</td>
         "
@@ -1543,7 +1552,7 @@ ad_proc im_costs_project_finance_component {
 	}
 
 	if {$show_notes_p && "" ne [string trim $note]} {
-	    append cost_html "</tr>\n<tr $bgcolor([expr {$ctr % 2}])>\n"
+	    append cost_html "</tr>\n<tr class=\"$bgcolor([expr {$ctr % 2}]) row_visible\" id=\"note_$cost_id\">\n"
             append cost_html "<td colspan=99>$note</td>"
 	}
 
@@ -1572,7 +1581,7 @@ ad_proc im_costs_project_finance_component {
     # Add a reasonable message if there are no documents
     if {$ctr == 1} {
 	append cost_html "
-	<tr$bgcolor([expr {$ctr % 2}])>
+	<tr class=\"$bgcolor([expr {$ctr % 2}])\">
 	  <td colspan=$colspan align=center>
 	    <I>[_ intranet-cost.lt_No_financial_document]</I>
 	  </td>
@@ -1582,6 +1591,49 @@ ad_proc im_costs_project_finance_component {
 
     # Close the main table
     append cost_html "</tbody></table>\n"
+
+    append cost_html "
+	<script type=\"text/javascript\">
+	var costs = {};
+"
+    foreach ctype_id [array names cost_hash] {
+	append cost_html "\tcosts\['$ctype_id'\] = \[[join $cost_hash($ctype_id) ","]\];\n"
+    }
+
+    append cost_html "
+	// Change visibility of row
+	function toggle_visibility(cost_type_id) {
+	    console.log('toggle_visibility: cost_type_: ' + cost_type_id);
+	    var header = document.getElementById(cost_type_id);
+	    var cost_list = costs\[cost_type_id\];
+	    if (document.getElementById(cost_type_id).getAttribute('fold_status') == 'o') {
+		// current status is 'open', hide all children
+		for (var i = 0; i < cost_list.length; i++) {
+		    var elem = document.getElementById('cost_'+cost_list\[i\]);
+		    if (elem != null) { elem.className = elem.className.replace('row_visible', 'row_hidden'); };
+		    var elem = document.getElementById('note_'+cost_list\[i\]);
+		    if (elem != null) { elem.className = elem.className.replace('row_visible', 'row_hidden'); };
+               	};
+		if (header != null) {
+			header.style.backgroundImage = 'url(/intranet/images/plus_9.gif)';	// change background image
+			header.setAttribute('fold_status', 'c');				// set hidden attribute fold_status
+		};
+	    } else {
+		// current status is 'closed', un-hide all children
+		for (var i = 0; i < cost_list.length; i++) {
+		    var elem = document.getElementById('cost_'+cost_list\[i\]);
+		    if (elem != null) { elem.className = elem.className.replace('row_hidden', 'row_visible'); };
+		    var elem = document.getElementById('note_'+cost_list\[i\]);
+		    if (elem != null) { elem.className = elem.className.replace('row_hidden', 'row_visible'); };
+               	};
+		if (header != null) {
+			header.style.backgroundImage = 'url(/intranet/images/minus_9.gif)';	// change background image
+			header.setAttribute('fold_status', 'o');				// set hidden attribute fold_status
+		};
+	    }
+	}
+	</script>
+    "
 
     if {!$show_details_p} { set cost_html "" }
 
