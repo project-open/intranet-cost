@@ -1195,7 +1195,7 @@ ad_proc -public im_costs_company_profit_loss_component {
 
 ad_proc im_costs_project_finance_component { 
     {-show_details_p 1}
-    {-show_summary_p 1}
+    {-show_summary_p 0}
     {-show_admin_links_p 1}
     {-no_timesheet_p 0}
     {-view_name ""}
@@ -1368,12 +1368,14 @@ ad_proc im_costs_project_finance_component {
 		 ) as project_count,
 		(select min(project_id) from acs_rels ar, im_projects arp 
 		 where ar.object_id_two = ci.cost_id and ar.object_id_one = arp.project_id
-		) as min_project_id
+		) as min_project_id,
+		ts.open_p
 	from
 		im_costs ci
 			LEFT OUTER JOIN im_projects p ON (ci.project_id = p.project_id)
 			LEFT OUTER JOIN im_companies cust on (ci.customer_id = cust.company_id)
-			LEFT OUTER JOIN im_companies prov on (ci.provider_id = prov.company_id),
+			LEFT OUTER JOIN im_companies prov on (ci.provider_id = prov.company_id)
+			LEFT OUTER JOIN im_biz_object_tree_status ts ON (ts.object_id = :project_id and ts.page_url = '/intranet/projects/view?view_name=finance&cost_type_id='||ci.cost_type_id),
 		acs_objects o,
 		(select * from im_biz_object_urls where url_type=:view_mode) url
 	where
@@ -1386,8 +1388,11 @@ ad_proc im_costs_project_finance_component {
 		$limit_to_customers
 	order by
 		ci.cost_type_id,
+		p.project_nr,
 		ci.effective_date desc
     "
+#    ad_return_complaint 1 [im_ad_hoc_query -format html $costs_sql]
+
 
     set cost_html "
 	<h1>[_ intranet-cost.Financial_Documents]</h1>
@@ -1433,6 +1438,13 @@ ad_proc im_costs_project_finance_component {
     set old_cost_type_id 0
     db_foreach recent_costs $costs_sql {
 
+        set visible_class "row_visible"
+	set fold_class "fold_in_link"
+	if {"c" eq $open_p} { 
+	   set visible_class "row_hidden" 
+	   set fold_class "fold_out_link"
+	}
+
 	# Create the list of costs per cost_type_id
 	set c ""
 	if {[info exists cost_hash($cost_type_id)]} { set c $cost_hash($cost_type_id) }
@@ -1444,6 +1456,7 @@ ad_proc im_costs_project_finance_component {
 
 	# Write the subtotal line of the last cost_type_id section
 	if {$cost_type_id != $old_cost_type_id} {
+
 	    if {0 != $old_cost_type_id} {
 		if {!$atleast_one_unreadable_p} {
 		    append cost_html "
@@ -1452,8 +1465,10 @@ ad_proc im_costs_project_finance_component {
 			  <td align='right' colspan=1>
 			    <b><nobr>[lc_numeric $subtotals($old_cost_type_id)] $default_currency</nobr></b>
 			  </td>
-			</tr>
 		    "
+		    if {$show_payments_p} { append cost_html "<td>&nbsp</td>\n<td>&nbsp</td>\n" }
+
+		    append cost_html "</tr>"
 		}
 		append cost_html "
 		<tr class='rowwhite'>
@@ -1467,7 +1482,7 @@ ad_proc im_costs_project_finance_component {
 	    append cost_html "
 		<tr class='rowplain'>
 		    <td colspan=99>
-		        <input class=\"fold_in_link\" id=\"$cost_type_id\" type=\"button\" value=\"\" onclick=\"toggle_visibility($cost_type_id);\" fold_status=\"o\">
+		        <input class=\"$fold_class\" id=\"$cost_type_id\" type=\"button\" value=\"\" onclick=\"toggle_visibility($cost_id, $cost_type_id);\" fold_status=\"$open_p\">
 			<span class='table_interim_title'>$cost_type_l10n</span>
 		    </td>
 		</tr>\n"
@@ -1516,7 +1531,7 @@ ad_proc im_costs_project_finance_component {
 	if {[im_category_is_a $cost_type_id [im_cost_type_timesheet]]} { set company_name "" }
 
 	append cost_html "
-	<tr class=\"$bgcolor([expr {$ctr % 2}]) row_visible\" id=\"cost_$cost_id\">
+	<tr class=\"$bgcolor([expr {$ctr % 2}]) $visible_class\" id=\"cost_$cost_id\">
 	  <td><nobr>$cost_url[string range $cost_name 0 30]</A></nobr></td>
 	  <td>$cost_center_code</td>
         "
@@ -1552,7 +1567,7 @@ ad_proc im_costs_project_finance_component {
 	}
 
 	if {$show_notes_p && "" ne [string trim $note]} {
-	    append cost_html "</tr>\n<tr class=\"$bgcolor([expr {$ctr % 2}]) row_visible\" id=\"note_$cost_id\">\n"
+	    append cost_html "</tr>\n<tr class=\"$bgcolor([expr {$ctr % 2}]) $visible_class\" id=\"note_$cost_id\">\n"
             append cost_html "<td colspan=99>$note</td>"
 	}
 
@@ -1602,9 +1617,10 @@ ad_proc im_costs_project_finance_component {
 
     append cost_html "
 	// Change visibility of row
-	function toggle_visibility(cost_type_id) {
+	function toggle_visibility(cost_id, cost_type_id) {
 	    console.log('toggle_visibility: cost_type_: ' + cost_type_id);
 	    var header = document.getElementById(cost_type_id);
+	    var fold_status = 'o';
 	    var cost_list = costs\[cost_type_id\];
 	    if (document.getElementById(cost_type_id).getAttribute('fold_status') == 'o') {
 		// current status is 'open', hide all children
@@ -1617,6 +1633,7 @@ ad_proc im_costs_project_finance_component {
 		if (header != null) {
 			header.style.backgroundImage = 'url(/intranet/images/plus_9.gif)';	// change background image
 			header.setAttribute('fold_status', 'c');				// set hidden attribute fold_status
+			fold_status = 'c';
 		};
 	    } else {
 		// current status is 'closed', un-hide all children
@@ -1629,8 +1646,15 @@ ad_proc im_costs_project_finance_component {
 		if (header != null) {
 			header.style.backgroundImage = 'url(/intranet/images/minus_9.gif)';	// change background image
 			header.setAttribute('fold_status', 'o');				// set hidden attribute fold_status
+			fold_status = 'o';
 		};
 	    }
+
+	    var xmlHttp = new XMLHttpRequest();
+	    var url = '[ns_urlencode "/intranet/projects/view?view_name=finance&cost_type_id="]';
+	    xmlHttp.open('GET','/intranet/biz-object-tree-open-close?page_url='+url+cost_type_id+'&open_p='+fold_status+'&object_ids='+$project_id, true);
+	    xmlHttp.send(null);
+
 	}
 	</script>
     "
