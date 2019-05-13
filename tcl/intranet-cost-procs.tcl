@@ -1195,7 +1195,7 @@ ad_proc -public im_costs_company_profit_loss_component {
 
 ad_proc im_costs_project_finance_component { 
     {-show_details_p 1}
-    {-show_summary_p 0}
+    {-show_summary_p 1}
     {-show_admin_links_p 1}
     {-no_timesheet_p 0}
     {-view_name ""}
