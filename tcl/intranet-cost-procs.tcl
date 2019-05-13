@@ -1536,7 +1536,8 @@ ad_proc im_costs_project_finance_component {
 	  <td>$cost_center_code</td>
         "
 	if {$show_subprojects_p} {
-	    if {$project_count > 1 || $project_id ne $min_project_id} {
+
+	    if {$project_count > 1 || ("" ne $min_project_id && $project_id ne $min_project_id)} {
 		# Ugly case: The financial document is related to more than one project/task
 		set psql "select p.project_id, p.project_name from im_projects p, acs_rels r where r.object_id_one = p.project_id and r.object_id_two = :cost_id order by p.tree_sortkey"
 		set project_html ""
