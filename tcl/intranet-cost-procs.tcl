@@ -1369,7 +1369,7 @@ ad_proc im_costs_project_finance_component {
 		(select min(project_id) from acs_rels ar, im_projects arp 
 		 where ar.object_id_two = ci.cost_id and ar.object_id_one = arp.project_id
 		) as min_project_id,
-		ts.open_p
+		coalesce(ts.open_p, 'o') as open_p
 	from
 		im_costs ci
 			LEFT OUTER JOIN im_projects p ON (ci.project_id = p.project_id)
