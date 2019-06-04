@@ -1375,7 +1375,11 @@ ad_proc im_costs_project_finance_component {
 			LEFT OUTER JOIN im_projects p ON (ci.project_id = p.project_id)
 			LEFT OUTER JOIN im_companies cust on (ci.customer_id = cust.company_id)
 			LEFT OUTER JOIN im_companies prov on (ci.provider_id = prov.company_id)
-			LEFT OUTER JOIN im_biz_object_tree_status ts ON (ts.object_id = :project_id and ts.page_url = '/intranet/projects/view?view_name=finance&cost_type_id='||ci.cost_type_id),
+			LEFT OUTER JOIN im_biz_object_tree_status ts ON (
+				ts.object_id = :project_id and
+				ts.user_id = :user_id and
+				ts.page_url = '/intranet/projects/view?view_name=finance&cost_type_id='||ci.cost_type_id
+			),
 		acs_objects o,
 		(select * from im_biz_object_urls where url_type=:view_mode) url
 	where
