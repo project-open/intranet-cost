@@ -1239,6 +1239,7 @@ ad_proc im_costs_project_finance_component {
     set show_payments_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowPaymentsP" -default 0]
     set show_status_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowStatusP" -default 1]
     set show_notes_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowNotesP" -default 0]
+    set show_lines_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowLinesP" -default 0]
 
     # pre-filtering 
     # permissions - beauty of code follows transparency and readability
@@ -1573,7 +1574,35 @@ ad_proc im_costs_project_finance_component {
 
 	if {$show_notes_p && "" ne [string trim $note]} {
 	    append cost_html "</tr>\n<tr class=\"$bgcolor([expr {$ctr % 2}]) $visible_class\" id=\"note_$cost_id\">\n"
-            append cost_html "<td colspan=99>$note</td>"
+            append cost_html "<td colspan=99>Note: $note</td>"
+	}
+
+	# fraber 2019-06-20: Started to add financial document lines below financial documents
+	# ToDo:
+	# - Number formatting and alignment
+	# - Show/hide doesn't work
+	if {$show_lines_p} {
+	    set lines_sql "
+		select	ii.item_name,
+			ii.item_material_id,
+			acs_object__name(ii.item_material_id) as item_material_name,
+			ii.item_units,
+			im_category_from_id(ii.item_uom_id) as item_uom,
+			ii.price_per_unit,
+			ii.price_per_unit * ii.item_units as price
+		from	im_invoice_items ii
+		where	ii.invoice_id = :cost_id
+		order by ii.sort_order
+	    "
+	    db_foreach lines $lines_sql {
+	        append cost_html "</tr>\n<tr class=\"$bgcolor([expr {$ctr % 2}]) $visible_class\" id=\"note_$cost_id\">\n"
+                append cost_html "
+			<td colspan=4>$item_name</td>
+			<td>$item_material_name</td>
+			<td>$item_units $item_uom</td>
+			<td>$price</td>
+		"
+	    }
 	}
 
 	append cost_html "</tr>\n"
