@@ -164,12 +164,15 @@ ad_proc -public im_cost_permissions {user_id cost_id view_var read_var write_var
     set cost_center_id 0
     set cost_type_id 0
     db_0or1row get_companies "
-	select	customer_id,
-		provider_id,
-		cost_center_id,
-		cost_type_id
-	from	im_costs
-	where	cost_id = :cost_id
+	select	(select o.object_type from acs_objects o where o.object_id = c.cost_id) as cost_otype,
+		c.customer_id,
+		(select o.object_type from acs_objects o where o.object_id = c.customer_id) as customer_otype,
+		c.provider_id,
+		(select o.object_type from acs_objects o where o.object_id = c.provider_id) as provider_otype,
+		c.cost_center_id,
+		c.cost_type_id
+	from	im_costs c
+	where	c.cost_id = :cost_id
     "
 
     # -----------------------------------------------------
@@ -218,9 +221,22 @@ ad_proc -public im_cost_permissions {user_id cost_id view_var read_var write_var
     set prov_read 0
     set prov_write 0
     set prov_admin 0
-    if {$user_is_freelance_p && $provider_id && $provider_id != [im_company_internal]} {
-        im_company_permissions $user_id $provider_id prov_view prov_read prov_write prov_admin
+
+    switch $provider_otype {
+        im_company {
+	    if {$user_is_freelance_p && $provider_id && $provider_id != [im_company_internal]} {
+		im_company_permissions $user_id $provider_id prov_view prov_read prov_write prov_admin
+	    }
+	}
+	user {
+	    # This is an expense or an expense bundle, probably.
+	    if {$provider_id eq $user_id} {
+		set prov_view 1
+		set prov_read 1
+	    }
+	}
     }
+
 
     # -----------------------------------------------------
     # Set the permission as the OR-conjunction of provider and customer
