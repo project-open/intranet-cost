@@ -369,7 +369,7 @@ ad_proc -public im_cost_center_company {
     " -default 0]]
 
     if {0 == $cc} { 
-	sset cc [util_memoize [list db_string cost_center_company "
+	set cc [util_memoize [list db_string cost_center_company "
 		select	cost_center_id
 		from	im_cost_centers
 		order by length(cost_center_code)
