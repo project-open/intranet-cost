@@ -362,24 +362,25 @@ ad_proc -public im_cost_center_company {
 } {
     Returns the ID of the "Company - Co" Cost Center
 } {
-    set cc [db_string cost_center_company "
+    set cc [util_memoize [list db_string cost_center_company "
 	select	cost_center_id
 	from	im_cost_centers
 	where	cost_center_label = 'company'
-    " -default 0]
+    " -default 0]]
 
     if {0 == $cc} { 
-	set cc [db_string cost_center_company "
+	sset cc [util_memoize [list db_string cost_center_company "
 		select	cost_center_id
 		from	im_cost_centers
 		order by length(cost_center_code)
 		LIMIT 1
-	" -default 0]
+	" -default 0]]
     }
 
     if {0 == $cc} { ad_return_complaint 1 "Unable to find Cost Center 'company'" }
     return $cc
 }
+
 
 ad_proc -public -deprecated im_cost_center_read_p {
     cost_center_id
