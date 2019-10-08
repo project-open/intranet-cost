@@ -1293,12 +1293,6 @@ ad_proc im_costs_project_finance_component {
 	return "You have no permission to see this page"
     } 
     
-    # show admin links only if at least one write permission
-    # -- KH-2012-12-12: 
-    # -- If show_admin_links_p is set to '0' it should simply not show up
-    # -- Nothing should overwrite that setting 
-    # if {$show_details_p} { set show_admin_links_p 1 }
-
     set bgcolor(0) "roweven"
     set bgcolor(1) "rowodd"
     set colspan 7
@@ -1322,11 +1316,15 @@ ad_proc im_costs_project_finance_component {
     im_security_alert_check_integer -location "im_costs_project_finance_component: project_id" -value $project_id
     set org_project_id $project_id
 
+    # Pull out optional sort_order string from HTTP headers. Dirty and unsecure!
+    set sort_order [im_opt_val sort_order]
+
+
     # Get a hash array of subtotals per cost_type
     array set subtotals [im_cost_update_project_cost_cache $project_id]
 
-
-    # ----------------- Compose Main SQL Query --------------------------------
+    # ----------------- Get the list of all cost items somehow related to the project  --------------------------------
+    # ----------------- (either via im_costs.project_id or via acs_rels)               --------------------------------
     set project_cost_ids_sql "
 		                select distinct cost_id
 		                from im_costs
@@ -1363,6 +1361,20 @@ ad_proc im_costs_project_finance_component {
     if {$no_timesheet_p} {
         lappend cost_type_excludes [im_cost_type_timesheet]
     }
+
+    # ----------------- Main SQL to pull out the cost items --------------------------------
+
+    set costs_sql_order_by "order by ci.cost_type_id, p.project_nr, ci.effective_date desc"
+    switch $sort_order {
+        "Document" { set costs_sql_order_by "order by ci.cost_type_id, lower(ci.cost_name), ci.effective_date desc" }
+        "CC" { set costs_sql_order_by "order by ci.cost_type_id, im_cost_center_code_from_id(ci.cost_center_id), ci.effective_date desc" }
+        "Task" { set costs_sql_order_by "order by ci.cost_type_id, p.project_nr, ci.effective_date desc" }
+        "Status" { set costs_sql_order_by "order by ci.cost_type_id, ci.cost_status_id, ci.effective_date desc" }
+        "Due" { set costs_sql_order_by "order by ci.cost_type_id, ci.effective_date desc" }
+        "Amount" { set costs_sql_order_by "order by ci.cost_type_id, ci.amount DESC, ci.effective_date desc" }
+    }
+    set sort_order_base_url [export_vars -base "/intranet/projects/view" {project_id {view_name finance} }]
+
 
     set costs_sql "
 	select
@@ -1407,10 +1419,7 @@ ad_proc im_costs_project_finance_component {
 		$limit_to_freelancers
 		$limit_to_inco_customers
 		$limit_to_customers
-	order by
-		ci.cost_type_id,
-		p.project_nr,
-		ci.effective_date desc
+	$costs_sql_order_by
     "
 #    ad_return_complaint 1 [im_ad_hoc_query -format html $costs_sql]
 
@@ -1420,21 +1429,21 @@ ad_proc im_costs_project_finance_component {
 	<table border=0 class='table_list_page'>
 	  <thead>
 	  <tr>
-	    <td>[_ intranet-cost.Document]</td>
-	    <td>[lang::message::lookup "" intranet-cost.CostCenter_short "CC"]</td>
+	    <td><a href=$sort_order_base_url&sort_order=Document>[_ intranet-cost.Document]</a></td>
+	    <td><a href=$sort_order_base_url&sort_order=CC>[lang::message::lookup "" intranet-cost.CostCenter_short "CC"]</a></td>
     "
     if {$show_subprojects_p} {
         append cost_html "
-	    <td align='left'>[lang::message::lookup "" intranet-cost.Sub_Project "Sub-Project<br>/Task"]</td>
+	    <td align='left'><a href=$sort_order_base_url&sort_order=Task>[lang::message::lookup "" intranet-cost.Sub_Project "Sub-Project<br>/Task"]</a></td>
         "
     }
     append cost_html "<td>[_ intranet-cost.Company]</td>\n"
     if {$show_status_p} {
-	append cost_html "<td>[_ intranet-cost.Status]</td>\n"
+	append cost_html "<td><a href=$sort_order_base_url&sort_order=Status>[_ intranet-cost.Status]</a></td>\n"
     }
     append cost_html "
-	    <td>[_ intranet-cost.Due]</td>
-	    <td align='right'>[_ intranet-cost.Amount]</td>
+	    <td><a href=$sort_order_base_url&sort_order=Due>[_ intranet-cost.Due]</a></td>
+	    <td align='right'><a href=$sort_order_base_url&sort_order=Amount>[_ intranet-cost.Amount]</a></td>
     "
     if {$show_payments_p} {
         append cost_html "
