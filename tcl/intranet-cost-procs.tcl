@@ -1371,7 +1371,7 @@ ad_proc im_costs_project_finance_component {
         "Task" { set costs_sql_order_by "order by ci.cost_type_id, p.project_nr, ci.effective_date desc" }
         "Status" { set costs_sql_order_by "order by ci.cost_type_id, ci.cost_status_id, ci.effective_date desc" }
         "Due" { set costs_sql_order_by "order by ci.cost_type_id, ci.effective_date desc" }
-        "Amount" { set costs_sql_order_by "order by ci.cost_type_id, ci.amount DESC, ci.effective_date desc" }
+        "Amount" { set costs_sql_order_by "order by ci.cost_type_id, coalesce(ci.amount, 0.0) DESC, ci.effective_date desc" }
     }
     set sort_order_base_url [export_vars -base "/intranet/projects/view" {project_id {view_name finance} }]
 
