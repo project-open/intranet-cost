@@ -884,6 +884,7 @@ ad_proc im_company_payment_balance_component { company_id } {
 			c.paid_currency
 		from	im_costs c
 		where	c.cost_type_id in (select * from im_sub_categories(:cust_prov_type_id) and
+		        c.cost_status_id not in ([join [im_sub_categories [im_cost_status_deleted]] ","]) and
 			$company_sql
 		) c
 	order by
@@ -1082,6 +1083,7 @@ ad_proc im_costs_base_component {
 		$extra_from_clause
 	where
 		ci.cost_id = o.object_id
+		and ci.cost_status_id not in ([join [im_sub_categories [im_cost_status_deleted]] ","])
 		and ci.cost_center_id = readable_ccs.cost_center_id
 		and ci.cost_type_id = readable_ccs.cost_type_id
 		$extra_where_clause
@@ -1415,13 +1417,14 @@ ad_proc im_costs_project_finance_component {
 		ci.cost_id = o.object_id and
 		o.object_type = url.object_type and
 		ci.cost_id in ($project_cost_ids_sql) and
+		ci.cost_status_id not in ([join [im_sub_categories [im_cost_status_deleted]] ","]) and
 		ci.cost_type_id not in ([template::util::tcl_to_sql_list $cost_type_excludes])
 		$limit_to_freelancers
 		$limit_to_inco_customers
 		$limit_to_customers
 	$costs_sql_order_by
     "
-#    ad_return_complaint 1 [im_ad_hoc_query -format html $costs_sql]
+#    ad_return_complaint 1 "<pre>$costs_sql</pre><br>[im_ad_hoc_query -format html $costs_sql]"
 
 
     set cost_html "
@@ -2121,6 +2124,7 @@ ad_proc im_costs_select {
 	from
 		im_costs i
 	where
+		i.cost_status_id not in ([join [im_sub_categories [im_cost_status_deleted]] ","]) and
 		1=1
     "
 
@@ -2265,7 +2269,8 @@ ad_proc -public im_cost_update_project_cost_cache {
 			from	im_costs ci
 			where	ci.cost_id in (
 					$project_cost_ids_sql
-				)
+				) and
+		                ci.cost_status_id not in ([join [im_sub_categories [im_cost_status_deleted]] ","])
 		) ci on (cat.cost_type_id = ci.cost_type_id)
 	where
 		cat.cost_type_id not in (
@@ -2612,6 +2617,7 @@ ad_proc -public im_cost_project_document_icons_helper {
 	where	main_p.project_id = :project_id and
 		p.tree_sortkey between main_p.tree_sortkey and tree_right(main_p.tree_sortkey) and
 		p.project_id = ci.project_id and
+		ci.cost_status_id not in ([join [im_sub_categories [im_cost_status_deleted]] ","]) and
 		ci.cost_type_id in (
 			select * from im_sub_categories([im_cost_type_invoice]) union
 			select * from im_sub_categories([im_cost_type_quote]) union
