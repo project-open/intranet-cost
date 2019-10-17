@@ -179,7 +179,6 @@ ad_proc -public im_cost_center_options {
     Takes into account the permission of the user to 
     charge FinDocs to CostCenters
 } {
-
     set user_id [ad_conn user_id]
     set start_center_id [im_cost_center_company]
     set cost_type "Invalid"
@@ -486,6 +485,7 @@ ad_proc -public im_user_cost_centers { user_id } {
     Returns the list of all cost-centes of the user
     including sub cost-centers
 } {
+    if {"" eq $user_id} { set user_id [ad_conn user_id] }
     im_security_alert_check_integer -location "im_user_cost_centers: user_id" -value $user_id
     return [util_memoize [list db_list user_ccs "select * from im_user_cost_centers($user_id)"]]
 }
