@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<message_catalog package_key="intranet-cost" locale="zh_TW" charset="utf-8">
+
+  <msg key="Amount">金額</msg>
+  <msg key="Cost_Centers">成本中心 Cost Centers</msg>
+  <msg key="Customer_Invoices">客戶發票</msg>
+  <msg key="Document">文檔</msg>
+  <msg key="Due">到期</msg>
+  <msg key="Expenses">費用</msg>
+  <msg key="Finance">財務</msg>
+  <msg key="Finance_Summary">財務概況</msg>
+  <msg key="Financial_Documents">財務文件</msg>
+  <msg key="Grand_Total">總額</msg>
+  <msg key="lt_No_financial_document">這個專案沒有財務文件</msg>
+  <msg key="Paid">已付</msg>
+  <msg key="Preliminary_Costs">初步費用</msg>
+  <msg key="Preliminary_Total">概算總額</msg>
+  <msg key="Provider_Bills">供應商票據</msg>
+  <msg key="Purchase_Orders">採購訂單</msg>
+  <msg key="Quotes">報價</msg>
+  <msg key="Real_Costs">實際成本</msg>
+  <msg key="Timesheet_Costs">工時表成本</msg>
+  <msg key="Type">類型</msg>
+</message_catalog>
