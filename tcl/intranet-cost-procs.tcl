@@ -1617,7 +1617,8 @@ ad_proc im_costs_project_finance_component {
 			ii.item_units,
 			im_category_from_id(ii.item_uom_id) as item_uom,
 			ii.price_per_unit,
-			ii.price_per_unit * ii.item_units as price
+			ii.price_per_unit * ii.item_units as price,
+			ii.currency
 		from	im_invoice_items ii
 		where	ii.invoice_id = :cost_id
 		order by ii.sort_order
@@ -1628,7 +1629,7 @@ ad_proc im_costs_project_finance_component {
 			<td colspan=4>$item_name</td>
 			<td>$item_material_name</td>
 			<td>$item_units $item_uom</td>
-			<td>$price</td>
+			<td>$price $currency</td>
 		"
 	    }
 	}
