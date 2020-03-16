@@ -1258,6 +1258,7 @@ ad_proc im_costs_project_finance_component {
     set show_status_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowStatusP" -default 1]
     set show_notes_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowNotesP" -default 0]
     set show_lines_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowLinesP" -default 0]
+    set show_budget_p [im_column_exists im_costs budget_item_id]
 
     # pre-filtering 
     # permissions - beauty of code follows transparency and readability
@@ -1440,6 +1441,9 @@ ad_proc im_costs_project_finance_component {
 	    <td align='left'><a href=$sort_order_base_url&sort_order=Task>[lang::message::lookup "" intranet-cost.Sub_Project "Sub-Project<br>/Task"]</a></td>
         "
     }
+    if {$show_budget_p} {
+	append cost_html "<td><a href=$sort_order_base_url&sort_order=Budget>[lang::message::lookup "" intranet-budget.Budget_Item "Budget Item"]</a></td>\n"
+    }
     append cost_html "<td>[_ intranet-cost.Company]</td>\n"
     if {$show_status_p} {
 	append cost_html "<td><a href=$sort_order_base_url&sort_order=Status>[_ intranet-cost.Status]</a></td>\n"
@@ -1568,8 +1572,12 @@ ad_proc im_costs_project_finance_component {
 	  <td><nobr>$cost_url[string range $cost_name 0 30]</A></nobr></td>
 	  <td>$cost_center_code</td>
         "
-	if {$show_subprojects_p} {
+	if {$show_budget_p} {
+	    append cost_html "<td>[acs_object_name $budget_item_id]</td>"
+	}
 
+
+	if {$show_subprojects_p} {
 	    if {$project_count > 1 || ("" ne $min_project_id && $project_id ne $min_project_id)} {
 		# Ugly case: The financial document is related to more than one project/task
 		set psql "select p.project_id, p.project_name from im_projects p, acs_rels r where r.object_id_one = p.project_id and r.object_id_two = :cost_id order by p.tree_sortkey"
@@ -1673,7 +1681,7 @@ ad_proc im_costs_project_finance_component {
     append cost_html "
 	<script type=\"text/javascript\">
 	var costs = {};
-"
+    "
     foreach ctype_id [array names cost_hash] {
 	append cost_html "\tcosts\['$ctype_id'\] = \[[join $cost_hash($ctype_id) ","]\];\n"
     }
