@@ -175,6 +175,15 @@ ad_proc -public im_cost_permissions {user_id cost_id view_var read_var write_var
 	where	c.cost_id = :cost_id
     "
 
+    if {![info exists provider_otype]} {
+	ns_log Error "im_cost_permissions: cost_id=$cost_id probably is not a cost item."
+	set view 0
+	set read 0
+	set write 0
+	set admin 0
+	return
+    }
+
     # -----------------------------------------------------
     # Cost Center permissions - check if the user has read permissions
     # for this particular cost center
