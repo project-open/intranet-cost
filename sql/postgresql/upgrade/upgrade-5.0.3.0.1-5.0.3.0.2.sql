@@ -1,5 +1,5 @@
--- 5.0.2.3.5-5.0.2.3.6.sql
-SELECT acs_log__debug('/packages/intranet-cost/sql/postgresql/upgrade/upgrade-5.0.2.3.5-5.0.2.3.6.sql','');
+-- 5.0.3.0.1-5.0.3.0.2.sql
+SELECT acs_log__debug('/packages/intranet-cost/sql/postgresql/upgrade/upgrade-5.0.3.0.1-5.0.3.0.2.sql','');
 
 
 -- Delete a single cost (if we know its ID...)
