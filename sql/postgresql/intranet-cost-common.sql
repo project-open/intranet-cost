@@ -88,6 +88,7 @@ SELECT im_category_new (3734,'Provider Receipt','Intranet Cost Type');
 -- Fake cost types for timesheet _hours_
 SELECT im_category_new (3736,'Timesheet Hours','Intranet Cost Type');
 SELECT im_category_new (3738,'Planned Purchase','Intranet Cost Type');
+SELECT im_category_new (3740,'Customer Purchase Order','Intranet Cost Type');
 -- reserved until 3799
 
 
