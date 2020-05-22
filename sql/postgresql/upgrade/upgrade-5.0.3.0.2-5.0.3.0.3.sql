@@ -1,5 +1,5 @@
--- 5.0.3.0.1-5.0.3.0.2.sql
-SELECT acs_log__debug('/packages/intranet-cost/sql/postgresql/upgrade/upgrade-5.0.3.0.1-5.0.3.0.2.sql','');
+-- 5.0.3.0.2-5.0.3.0.3.sql
+SELECT acs_log__debug('/packages/intranet-cost/sql/postgresql/upgrade/upgrade-5.0.3.0.2-5.0.3.0.3.sql','');
 
 
 SELECT im_category_new (3740,'Customer Purchase Order','Intranet Cost Type');
