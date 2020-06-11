@@ -1330,7 +1330,7 @@ ad_proc im_costs_project_finance_component {
     set org_project_id $project_id
 
     # Pull out optional sort_order string from HTTP headers. Dirty and unsecure!
-    set sort_order [im_opt_val sort_order]
+    set sort_order [im_opt_val -limit_to nohtml sort_order]
 
 
     # Get a hash array of subtotals per cost_type
