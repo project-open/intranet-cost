@@ -215,10 +215,7 @@ template::list::create \
     -bulk_actions $bulk_actions_list \
     -elements {
         cc_chk {
-            label "<input type=\"checkbox\" checked
-                          name=\"_dummy\"
-                          onclick=\"acs_ListCheckAll('inconsistent_parents', this.checked)\"
-                          title=\"Check/uncheck all rows\">"
+            label "<input id=list_check_all type=\"checkbox\" checked name=\"_dummy\" title=\"Check/uncheck all rows\">"
             display_template {
                 @inconsistent_parents.cc_chk;noquote@
             }

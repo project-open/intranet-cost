@@ -1529,7 +1529,7 @@ ad_proc im_costs_project_finance_component {
 	    append cost_html "
 		<tr class='rowplain'>
 		    <td colspan=99>
-		        <input class=\"$fold_class\" id=\"$cost_type_id\" type=\"button\" value=\"\" onclick=\"toggle_visibility($cost_id, $cost_type_id);\" fold_status=\"$open_p\">
+		        <input class=\"$fold_class\" id=\"toggle_$cost_type_id\" type=\"button\" value=\"\" fold_status=\"$open_p\">
 			<span class='table_interim_title'>$cost_type_l10n</span>
 		    </td>
 		</tr>\n"
@@ -1537,6 +1537,10 @@ ad_proc im_costs_project_finance_component {
 	    set old_cost_type_id $cost_type_id
 	    set old_atleast_one_unreadable_p $atleast_one_unreadable_p
 	    set atleast_one_unreadable_p 0
+
+
+	    append toggle_js "document.getElementById('toggle_$cost_type_id').addEventListener('click', function() { toggle_visibility($cost_id, $cost_type_id); });"
+
 	}
 
 	# Avoid errors with strange cost_type_ids from planning etc
@@ -1688,8 +1692,13 @@ ad_proc im_costs_project_finance_component {
     # Close the main table
     append cost_html "</tbody></table>\n"
 
+    set nonce_html ""
+    if {[info exists ::__csp_nonce] && "" ne $::__csp_nonce} {
+	set nonce_html "nonce=\"$::__csp_nonce\""
+    }
+
     append cost_html "
-	<script type=\"text/javascript\">
+	<script type=\"text/javascript\" $nonce_html>
 	var costs = {};
     "
     foreach ctype_id [array names cost_hash] {
@@ -1700,17 +1709,17 @@ ad_proc im_costs_project_finance_component {
 	// Change visibility of row
 	function toggle_visibility(cost_id, cost_type_id) {
 	    console.log('toggle_visibility: cost_type_: ' + cost_type_id);
-	    var header = document.getElementById(cost_type_id);
+	    var header = document.getElementById('toggle_'+cost_type_id);
 	    var fold_status = 'o';
 	    var cost_list = costs\[cost_type_id\];
-	    if (document.getElementById(cost_type_id).getAttribute('fold_status') == 'o') {
+	    if (document.getElementById('toggle_'+cost_type_id).getAttribute('fold_status') == 'o') {
 		// current status is 'open', hide all children
 		for (var i = 0; i < cost_list.length; i++) {
 		    var elem = document.getElementById('cost_'+cost_list\[i\]);
 		    if (elem != null) { elem.className = elem.className.replace('row_visible', 'row_hidden'); };
 		    var elem = document.getElementById('note_'+cost_list\[i\]);
 		    if (elem != null) { elem.className = elem.className.replace('row_visible', 'row_hidden'); };
-               	};
+	       	};
 		if (header != null) {
 			header.style.backgroundImage = 'url(/intranet/images/plus_9.gif)';	// change background image
 			header.setAttribute('fold_status', 'c');				// set hidden attribute fold_status
@@ -1723,7 +1732,7 @@ ad_proc im_costs_project_finance_component {
 		    if (elem != null) { elem.className = elem.className.replace('row_hidden', 'row_visible'); };
 		    var elem = document.getElementById('note_'+cost_list\[i\]);
 		    if (elem != null) { elem.className = elem.className.replace('row_hidden', 'row_visible'); };
-               	};
+	       	};
 		if (header != null) {
 			header.style.backgroundImage = 'url(/intranet/images/minus_9.gif)';	// change background image
 			header.setAttribute('fold_status', 'o');				// set hidden attribute fold_status
@@ -1861,7 +1870,7 @@ ad_proc im_costs_project_finance_component {
 		</td></tr>
 		<tr><td>$currency_outdated_warning</td></tr>
 		</table>
-        "
+	"
 
     }
 
@@ -1983,6 +1992,13 @@ ad_proc im_costs_project_finance_component {
 
     set result_html "
         $currency_outdated_warning
+
+    	<script type='text/javascript' nonce='$::__csp_nonce'>
+	window.addEventListener('load', function() { 
+             $toggle_js
+	});
+	</script>
+
 	<table>
 	<tr valign=top>
 	  <td valign=top>

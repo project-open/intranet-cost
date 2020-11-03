@@ -4,6 +4,13 @@
 <property name="admin_navbar_label">admin_cost_centers</property>
 <property name="left_navbar">@left_navbar_html;literal@</property>
 
+<script type="text/javascript" <if @::__csp_nonce@ not nil>nonce="@::__csp_nonce;literal@"</if>>
+window.addEventListener('load', function() { 
+     document.getElementById('list_check_all').addEventListener('click', function() { acs_ListCheckAll('inconsistent_parents', this.checked) });
+});
+</script>
+
+
 <h1>@page_title@</h1>
 @help_txt;noquote@
 
