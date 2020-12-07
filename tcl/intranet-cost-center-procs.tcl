@@ -421,7 +421,7 @@ ad_proc -public im_cc_read_p {
     {-cost_type_id 0}
     {-privilege ""}
 } {
-    Returns "1" if the user can read the global "company" CC
+    Returns "1" if the user can read the CC
 } {
     # User can read all CCs if no Profit Center Controlling is installed
     set pcenter_p [util_memoize [list db_string pcent "select count(*) from apm_packages where package_key = 'intranet-cost-center'"]]
@@ -446,6 +446,46 @@ ad_proc -public im_cc_read_p {
     set true_false [util_memoize [list db_string company_cc_read "select im_object_permission_p($cost_center_id, $user_id, '$privilege')" -default f] 60]
     return [string equal "t" $true_false]
 }
+
+
+
+
+ad_proc -public im_cc_write_p {
+    {-user_id 0}
+    {-cost_center_id 0}
+    {-cost_type_id 0}
+    {-privilege ""}
+} {
+    Returns "1" if the user can write the CC
+} {
+    # User can read all CCs if no Profit Center Controlling is installed
+    set pcenter_p [util_memoize [list db_string pcent "select count(*) from apm_packages where package_key = 'intranet-cost-center'"]]
+    if {"" == $cost_center_id} { return 1 }
+    if {!$pcenter_p} { return 1 }
+    im_security_alert_check_integer -location "im_cc_read_p: user_id" -value $user_id
+    im_security_alert_check_integer -location "im_cc_read_p: cost_type_id" -value $cost_type_id
+    im_security_alert_check_integer -location "im_cc_read_p: cost_center_id" -value $cost_center_id
+    im_security_alert_check_alphanum -location "im_cc_read_p: privilege" -value $privilege
+
+    # Deal with exceptions
+    if {0 == $user_id} { set user_id [ad_conn user_id] }
+    if {0 == $cost_center_id} { set cost_center_id [im_cost_center_company] }
+    if {0 != $cost_type_id} {
+	set privilege [util_memoize [list db_string priv "
+		select write_privilege 
+		from im_cost_types 
+		where cost_type_id in (select * from im_sub_categories($cost_type_id))
+	" -default ""]]
+    }
+    if {"" == $privilege} { set privilege "fi_write_all" }
+
+    set true_false [util_memoize [list db_string company_cc_read "select im_object_permission_p($cost_center_id, $user_id, '$privilege')" -default f] 60]
+    if {"t" eq $true_false} { return 1 }
+
+    set true_false [util_memoize [list im_cost_center_write_p_helper $cost_center_id $cost_type_id $user_id] 60]
+    return [string equal "t" $true_false]
+}
+
 
 ad_proc -public im_cost_center_write_p {
     cost_center_id

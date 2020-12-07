@@ -188,8 +188,8 @@ ad_proc -public im_cost_permissions {user_id cost_id view_var read_var write_var
     # -----------------------------------------------------
     # Cost Center permissions - check if the user has read permissions
     # for this particular cost center
-    set cc_read [im_cc_read_p $cost_center_id $cost_type_id $user_id]
-    set cc_write [im_cc_write_p $cost_center_id $cost_type_id $user_id]
+    set cc_read [im_cc_read_p -user_id $user_id -cost_center_id $cost_center_id -cost_type_id $cost_type_id]
+    set cc_write [im_cc_write_p -user_id $user_id -cost_center_id $cost_center_id -cost_type_id $cost_type_id]
 
     set can_read [expr [im_permission $user_id view_costs] || [im_permission $user_id view_invoices]]
     set can_write [expr [im_permission $user_id add_costs] || [im_permission $user_id add_invoices]]
