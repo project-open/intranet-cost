@@ -1483,6 +1483,7 @@ ad_proc im_costs_project_finance_component {
 
     set old_project_nr ""
     set old_cost_type_id 0
+    set toggle_js ""
     db_foreach recent_costs $costs_sql {
 
         set visible_class "row_visible"
