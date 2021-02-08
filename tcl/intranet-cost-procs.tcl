@@ -1257,7 +1257,11 @@ ad_proc im_costs_project_finance_component {
     # Is component shown?  
     if { ("" == $view_name || "standard" == $view_name) && $disable_view_standard_p } { return "" }
     if { "finance" == $view_name && $disable_view_finance_p } { return "" }
-    
+
+    # project_id may get overwritten by SQL query
+    im_security_alert_check_integer -location "im_costs_project_finance_component: project_id" -value $project_id
+    set org_project_id $project_id
+
     # Check the permissions on the "Finance" tab
     set menu_label "project_finance"
     set read_menu_p [db_string read_menu "select im_object_permission_p(m.menu_id, :user_id, 'read') from im_menus m where m.label = :menu_label" -default "f"]
@@ -1325,16 +1329,12 @@ ad_proc im_costs_project_finance_component {
     # Default Currency
     set default_currency [im_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
 
-    # project_id may get overwritten by SQL query
-    im_security_alert_check_integer -location "im_costs_project_finance_component: project_id" -value $project_id
-    set org_project_id $project_id
-
     # Pull out optional sort_order string from HTTP headers. Dirty and unsecure!
     set sort_order [im_opt_val -limit_to nohtml sort_order]
 
 
     # Get a hash array of subtotals per cost_type
-    array set subtotals [im_cost_update_project_cost_cache $project_id]
+    array set subtotals [im_cost_update_project_cost_cache $org_project_id]
 
     # ----------------- Get the list of all cost items somehow related to the project  --------------------------------
     # ----------------- (either via im_costs.project_id or via acs_rels)               --------------------------------
@@ -1348,7 +1348,7 @@ ad_proc im_costs_project_finance_component {
 					where	children.tree_sortkey 
 							between parent.tree_sortkey 
 							and tree_right(parent.tree_sortkey)
-						and parent.project_id = :project_id
+						and parent.project_id = :org_project_id
 				)
 			    UNION
 				select distinct object_id_two as cost_id
@@ -1360,7 +1360,7 @@ ad_proc im_costs_project_finance_component {
 					where	children.tree_sortkey 
 							between parent.tree_sortkey 
 							and tree_right(parent.tree_sortkey)
-						and parent.project_id = :project_id
+						and parent.project_id = :org_project_id
 				)
     "
     
@@ -1411,14 +1411,14 @@ ad_proc im_costs_project_finance_component {
 		(select min(project_id) from acs_rels ar, im_projects arp 
 		 where ar.object_id_two = ci.cost_id and ar.object_id_one = arp.project_id
 		) as min_project_id,
-		coalesce(ts.open_p, 'o') as open_p
+		ts.open_p
 	from
 		im_costs ci
 			LEFT OUTER JOIN im_projects p ON (ci.project_id = p.project_id)
 			LEFT OUTER JOIN im_companies cust on (ci.customer_id = cust.company_id)
 			LEFT OUTER JOIN im_companies prov on (ci.provider_id = prov.company_id)
 			LEFT OUTER JOIN im_biz_object_tree_status ts ON (
-				ts.object_id = :project_id and
+				ts.object_id = :org_project_id and
 				ts.user_id = :user_id and
 				ts.page_url = '/intranet/projects/view?view_name=finance&cost_type_id='||ci.cost_type_id
 			),
@@ -1435,7 +1435,7 @@ ad_proc im_costs_project_finance_component {
 		$limit_to_customers
 	$costs_sql_order_by
     "
-#    ad_return_complaint 1 "<pre>$costs_sql</pre><br>[im_ad_hoc_query -format html $costs_sql]"
+#    ad_return_complaint 1 "<pre>$costs_sql</pre><br>project_id=$project_id<br>org_project_id=$org_project_id<br>user_id=$user_id<br><br>[im_ad_hoc_query -format html $costs_sql]"
 
 
     set cost_html "
@@ -1486,6 +1486,13 @@ ad_proc im_costs_project_finance_component {
     set toggle_js ""
     db_foreach recent_costs $costs_sql {
 
+	set org_open_p $open_p
+	if {"" eq $open_p} {
+	    set open_p "o"; # Default: open
+	    if {3718 == $cost_type_id} { set open_p "c" }
+	}
+	# ns_log Notice "im_costs_project_finance_component: cost_id=$cost_id, cost_type_id=$cost_type_id, org_open_p=$org_open_p, open_p=$open_p"
+	
         set visible_class "row_visible"
 	set fold_class "fold_in_link"
 	if {"c" eq $open_p} { 
@@ -1743,7 +1750,7 @@ ad_proc im_costs_project_finance_component {
 
 	    var xmlHttp = new XMLHttpRequest();
 	    var url = '[ns_urlencode "/intranet/projects/view?view_name=finance&cost_type_id="]';
-	    xmlHttp.open('GET','/intranet/biz-object-tree-open-close?page_url='+url+cost_type_id+'&open_p='+fold_status+'&object_ids='+$project_id, true);
+	    xmlHttp.open('GET','/intranet/biz-object-tree-open-close?page_url='+url+cost_type_id+'&open_p='+fold_status+'&object_ids='+$org_project_id, true);
 	    xmlHttp.send(null);
 
 	}
