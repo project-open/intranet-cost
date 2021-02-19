@@ -6,7 +6,7 @@
 -- Copyright (C) 2004 - 2009 ]project-open[
 --
 -- All rights including reserved. To inquire license terms please 
--- refer to http://www.project-open.com/modules/<module-key>
+-- refer to https://www.project-open.com/modules/<module-key>
 
 select im_menu__del_module('intranet-cost');
 select im_component_plugin__del_module('intranet-cost');
