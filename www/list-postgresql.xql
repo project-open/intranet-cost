@@ -27,6 +27,7 @@ select
 	cust.company_name as customer_name,
 	cust.company_path as customer_short_name,
 	proj.project_nr,
+	proj.project_name,
 	prov.company_name as provider_name,
 	prov.company_path as provider_short_name,
 	im_category_from_id(c.cost_status_id) as cost_status,
