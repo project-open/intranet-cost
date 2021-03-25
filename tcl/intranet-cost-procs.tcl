@@ -488,7 +488,10 @@ ad_proc -public im_cost_type_options { {include_empty 1} } {
     return $options
 }
 
-ad_proc -public im_cost_status_options { {include_empty 1} } { 
+ad_proc -public im_cost_status_options {
+    {-default 0}
+    {include_empty 1}
+} { 
     Cost status options
 } {
     set options [db_list_of_lists cost_status_options "
@@ -496,7 +499,7 @@ ad_proc -public im_cost_status_options { {include_empty 1} } {
 		category_id
 	from	im_categories
 	where	category_type = 'Intranet Cost Status' and
-		(enabled_p is null OR 't' = enabled_p)
+		(enabled_p is null OR 't' = enabled_p OR category_id = :default)
 	order by
 		coalesce(sort_order, 0), category_id
     "]
@@ -2097,7 +2100,7 @@ ad_proc -public im_cost_status_select {
     $default with a list of all the cost status_types in the system
 } {
     set include_empty 0
-    set options [util_memoize [list im_cost_status_options $include_empty]]
+    set options [util_memoize [list im_cost_status_options -default $default $include_empty]]
 
     set result "\n<select name=\"$select_name\">\n"
     if {$default eq ""} {
