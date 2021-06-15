@@ -69,7 +69,6 @@ SELECT im_category_new (910,'po.es.adp','Intranet Cost Template');
 -- Creating category Cost Type
 SELECT im_category_new (3700,'Customer Invoice','Intranet Cost Type');
 SELECT im_category_new (3702,'Quote','Intranet Cost Type');
--- SELECT im_category_new (3703,'Order','Intranet Cost Type');
 SELECT im_category_new (3704,'Provider Bill','Intranet Cost Type');
 SELECT im_category_new (3706,'Purchase Order','Intranet Cost Type');
 SELECT im_category_new (3708,'Customer Documents','Intranet Cost Type');
@@ -85,10 +84,13 @@ SELECT im_category_new (3728,'Expense Planned Cost','Intranet Cost Type');
 SELECT im_category_new (3730,'InterCo Invoice','Intranet Cost Type');
 SELECT im_category_new (3732,'InterCo Quote','Intranet Cost Type');
 SELECT im_category_new (3734,'Provider Receipt','Intranet Cost Type');
--- Fake cost types for timesheet _hours_
-SELECT im_category_new (3736,'Timesheet Hours','Intranet Cost Type');
+SELECT im_category_new (3736,'Timesheet Hours','Intranet Cost Type'); -- Fake cost types for timesheet_hours
 SELECT im_category_new (3738,'Planned Purchase','Intranet Cost Type');
 SELECT im_category_new (3740,'Customer Purchase Order','Intranet Cost Type');
+SELECT im_category_new (3742,'Goods Received','Intranet Cost Type');
+SELECT im_category_new (3744,'Goods Accepted','Intranet Cost Type');
+SELECT im_category_new (3744,'Purchase Request','Intranet Cost Type');
+SELECT im_category_new (3746,'Purchase Request','Intranet Cost Type');
 -- reserved until 3799
 
 

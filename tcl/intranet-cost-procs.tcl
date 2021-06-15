@@ -54,6 +54,9 @@ ad_proc -public im_cost_type_provider_receipt {} { return 3734 }
 ad_proc -public im_cost_type_timesheet_hours {} { return 3736 }
 ad_proc -public im_cost_type_planned_purchase {} { return 3738 }
 ad_proc -public im_cost_type_customer_po {} { return 3740 }
+ad_proc -public im_cost_type_goods_received {} { return 3742 }
+ad_proc -public im_cost_type_goods_accepted {} { return 3744 }
+ad_proc -public im_cost_type_purchase_request {} { return 3746 }
 
 
 ad_proc -public im_cost_type_short_name { cost_type_id } { 
@@ -176,6 +179,7 @@ ad_proc -public im_cost_permissions {user_id cost_id view_var read_var write_var
 	where	c.cost_id = :cost_id
     "
 
+    # Return no permissions instead of a hard error in case the cost does not exist
     if {![info exists provider_otype]} {
 	ns_log Error "im_cost_permissions: cost_id=$cost_id probably is not a cost item."
 	set view 0
