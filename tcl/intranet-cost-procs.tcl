@@ -57,6 +57,7 @@ ad_proc -public im_cost_type_customer_po {} { return 3740 }
 ad_proc -public im_cost_type_goods_received {} { return 3742 }
 ad_proc -public im_cost_type_goods_accepted {} { return 3744 }
 ad_proc -public im_cost_type_purchase_request {} { return 3746 }
+ad_proc -public im_cost_type_purchase_etc {} { return 3748 }
 
 
 ad_proc -public im_cost_type_short_name { cost_type_id } { 
