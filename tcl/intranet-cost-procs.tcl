@@ -199,6 +199,11 @@ ad_proc -public im_cost_permissions {user_id cost_id view_var read_var write_var
 	return
     }
 
+
+    # 2021-12-16 fraber: No cost center? Weber EWEX had problem with empty
+    # CC after reconfiguring CCs. Is "company" the right default?
+    if {"" eq $cost_center_id} { set cost_center_id [im_cost_center_company] }
+
     # -----------------------------------------------------
     # Cost Center permissions - check if the user has read permissions
     # for this particular cost center
