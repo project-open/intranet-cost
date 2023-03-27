@@ -111,9 +111,16 @@ ad_form -extend -name cost_center -on_request {
 	ad_script_abort
     }
     
+    # 2023-03-13 fraber: context_id passes permissions
+    # from super cost-centers down the hierarchy, so
+    # this update is necessary.
     # 2014-02-20 fraber: Generates a strange error.
     # Why was this necessary in the first place?
-    # db_dml cost_center_context_update {}
+    db_dml cost_center_context_update {
+	update acs_objects set 
+		context_id = :parent_id
+	where	object_id = :cost_center_id
+    }
 
     im_dynfield::attribute_store \
 	-object_type "im_cost_center" \
@@ -147,9 +154,16 @@ ad_form -extend -name cost_center -on_request {
         ad_script_abort
     }
 
+    # 2023-03-13 fraber: context_id passes permissions
+    # from super cost-centers down the hierarchy, so
+    # this update is necessary.
     # 2014-02-20 fraber: Generates a strange error.
     # Why was this necessary in the first place?
-    # db_dml cost_center_context_update {}
+    db_dml cost_center_context_update {
+	update acs_objects set 
+		context_id = :parent_id
+	where	object_id = :cost_center_id
+    }
 
     im_dynfield::attribute_store \
 	-object_type "im_cost_center" \
