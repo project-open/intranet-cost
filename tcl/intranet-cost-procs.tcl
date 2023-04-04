@@ -27,7 +27,14 @@ ad_proc -public im_cost_status_filed {} { return 3814 }
 ad_proc -public im_cost_status_requested {} { return 3816 }
 ad_proc -public im_cost_status_rejected {} { return 3818 }
 ad_proc -public im_cost_status_approved {} { return 3822 }
-# 3850 reserved for cosine "Estimated"
+# Reserved states
+# 3824 reserved for "Ordered"
+# 3850 reserved for "Estimated"
+# 3852 reserved for "Goods Received"
+# 3854 reserved for "Goods Accepted"
+# 3856 reserved for "Invoice Accepted"
+# 3858 reserved for "Payment Authorized"
+# 3860 reserved for "Sent"
 
 
 # Frequently used Cost Types
