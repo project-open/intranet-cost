@@ -26,7 +26,15 @@ ad_proc -public im_cost_status_deleted {} { return 3812 }
 ad_proc -public im_cost_status_filed {} { return 3814 }
 ad_proc -public im_cost_status_requested {} { return 3816 }
 ad_proc -public im_cost_status_rejected {} { return 3818 }
-
+ad_proc -public im_cost_status_approved {} { return 3822 }
+# Reserved states
+# 3824 reserved for "Ordered"
+# 3850 reserved for "Estimated"
+# 3852 reserved for "Goods Received"
+# 3854 reserved for "Goods Accepted"
+# 3856 reserved for "Invoice Accepted"
+# 3858 reserved for "Payment Authorized"
+# 3860 reserved for "Sent"
 
 
 # Frequently used Cost Types
@@ -58,6 +66,7 @@ ad_proc -public im_cost_type_goods_received {} { return 3742 }
 ad_proc -public im_cost_type_goods_accepted {} { return 3744 }
 ad_proc -public im_cost_type_purchase_request {} { return 3746 }
 ad_proc -public im_cost_type_purchase_etc {} { return 3748 }
+# 3750 reserved for cosine "mission"
 
 
 ad_proc -public im_cost_type_short_name { cost_type_id } { 
@@ -189,6 +198,11 @@ ad_proc -public im_cost_permissions {user_id cost_id view_var read_var write_var
 	set admin 0
 	return
     }
+
+
+    # 2021-12-16 fraber: No cost center? Weber EWEX had problem with empty
+    # CC after reconfiguring CCs. Is "company" the right default?
+    if {"" eq $cost_center_id} { set cost_center_id [im_cost_center_company] }
 
     # -----------------------------------------------------
     # Cost Center permissions - check if the user has read permissions
@@ -684,7 +698,7 @@ ad_proc -public im_costs_navbar {
     # Get the Subnavbar
     set parent_menu_sql "select menu_id from im_menus where label='finance'"
     set parent_menu_id [util_memoize [list db_string parent_admin_menu $parent_menu_sql -default 0]]
-    set navbar [im_sub_navbar $parent_menu_id "" $alpha_bar "tabnotsel" $select_label]
+    set navbar [im_sub_navbar $parent_menu_id $bind_vars $alpha_bar "tabnotsel" $select_label]
 
     return $navbar
 }
@@ -1283,6 +1297,8 @@ ad_proc im_costs_project_finance_component {
     set show_notes_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowNotesP" -default 0]
     set show_lines_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowLinesP" -default 0]
     set show_budget_p [im_column_exists im_costs budget_item_id]
+    set show_due_date_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowDueDateP" -default 0]
+    set show_effective_date_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowEffectiveDateP" -default 1]
 
     # pre-filtering 
     # permissions - beauty of code follows transparency and readability
@@ -1406,6 +1422,7 @@ ad_proc im_costs_project_finance_component {
 		ci.paid_currency as payment_currency,
 		to_char(ci.amount, :num_format) as amount,
 		to_char(ci.amount * im_exchange_rate(ci.effective_date::date, ci.currency, :default_currency), :num_format) as amount_converted,
+		ci.effective_date::date as effective_date_pretty,
 		p.project_nr,
 		p.project_name,
 		cust.company_name as customer_name,
@@ -1421,7 +1438,7 @@ ad_proc im_costs_project_finance_component {
 		(select min(project_id) from acs_rels ar, im_projects arp 
 		 where ar.object_id_two = ci.cost_id and ar.object_id_one = arp.project_id
 		) as min_project_id,
-		ts.open_p
+		coalesce(ts.open_p, 'o') as open_p
 	from
 		im_costs ci
 			LEFT OUTER JOIN im_projects p ON (ci.project_id = p.project_id)
@@ -1445,7 +1462,7 @@ ad_proc im_costs_project_finance_component {
 		$limit_to_customers
 	$costs_sql_order_by
     "
-#    ad_return_complaint 1 "<pre>$costs_sql</pre><br>project_id=$project_id<br>org_project_id=$org_project_id<br>user_id=$user_id<br><br>[im_ad_hoc_query -format html $costs_sql]"
+    # ad_return_complaint 1 "<pre>$costs_sql</pre><br>project_id=$project_id<br>org_project_id=$org_project_id<br>user_id=$user_id<br><br>[im_ad_hoc_query -format html $costs_sql]"
 
 
     set cost_html "
@@ -1468,8 +1485,13 @@ ad_proc im_costs_project_finance_component {
     if {$show_status_p} {
 	append cost_html "<td><a href=$sort_order_base_url&sort_order=Status>[_ intranet-cost.Status]</a></td>\n"
     }
+    if {$show_effective_date_p} {
+	append cost_html "<td><a href=$sort_order_base_url&sort_order=Effective>[lang::message::lookup "" intranet-cost.Effective_Date "Effective Date"]</a></td>\n"
+    }
+    if {$show_due_date_p} {
+	append cost_html "<td><a href=$sort_order_base_url&sort_order=Due>[_ intranet-cost.Due]</a></td>\n"
+    }
     append cost_html "
-	    <td><a href=$sort_order_base_url&sort_order=Due>[_ intranet-cost.Due]</a></td>
 	    <td align='right'><a href=$sort_order_base_url&sort_order=Amount>[_ intranet-cost.Amount]</a></td>
     "
     if {$show_payments_p} {
@@ -1498,8 +1520,8 @@ ad_proc im_costs_project_finance_component {
 
 	set org_open_p $open_p
 	if {"" eq $open_p} {
-	    set open_p "o"; # Default: open
-	    if {3718 == $cost_type_id} { set open_p "c" }
+	    set open_p "c"; # Fraber 2023-03-01 cosine default: closed # Default: open
+	    # if {3718 == $cost_type_id} { set open_p "c" }
 	}
 	# ns_log Notice "im_costs_project_finance_component: cost_id=$cost_id, cost_type_id=$cost_type_id, org_open_p=$org_open_p, open_p=$open_p"
 	
@@ -1524,11 +1546,12 @@ ad_proc im_costs_project_finance_component {
 
 	    if {0 != $old_cost_type_id} {
 		if {!$atleast_one_unreadable_p} {
+		    set sum [im_numeric_add_trailing_zeros [expr round(100.0 * $subtotals($old_cost_type_id)) / 100.0] 2]
 		    append cost_html "
 			<tr class=rowplain>
 			  <td colspan=[expr $colspan - 3 + $show_status_p + $show_subprojects_p]>&nbsp;</td>
 			  <td align='right' colspan=1>
-			    <b><nobr>[lc_numeric $subtotals($old_cost_type_id)] $default_currency</nobr></b>
+			    <b><nobr>[lc_numeric $sum] $default_currency</nobr></b>
 			  </td>
 		    "
 		    if {$show_payments_p} { append cost_html "<td>&nbsp</td>\n<td>&nbsp</td>\n" }
@@ -1629,10 +1652,14 @@ ad_proc im_costs_project_finance_component {
 	if {$show_status_p} {
 	    append cost_html "<td>$cost_status</td>\n"
 	}
-        append cost_html "
-	  <td><nobr>$calculated_due_date</nobr></td>
-	  <td align='right'><nobr>$amount_converted $default_currency_read_p</nobr></td>
-        "
+
+	if {$show_effective_date_p} {
+	    append cost_html "<td><nobr>$effective_date_pretty</nobr></td>\n"
+	}
+	if {$show_due_date_p} {
+	    append cost_html "<td><nobr>$calculated_due_date</nobr></td>\n"
+	}
+	append cost_html "<td align='right'><nobr>$amount_converted $default_currency_read_p</nobr></td>\n"
 	if {$show_payments_p} {
             append cost_html "
 	        <td align='right'><nobr>$amount_unconverted</td>
@@ -2280,6 +2307,7 @@ ad_proc -public im_cost_update_project_cost_cache {
     im_timesheet_update_timesheet_cache -project_id $project_id
 
     set project_cost_ids_sql "
+		                -- cost_ids based on im_costs.project_id field
 		                select distinct cost_id
 		                from im_costs
 		                where project_id in (
@@ -2292,6 +2320,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 						and parent.project_id = :project_id
 				)
 			    UNION
+		                -- cost_ids based on acs_rels between projects and costs
 				select distinct object_id_two as cost_id
 				from acs_rels
 				where object_id_one in (
@@ -2304,7 +2333,6 @@ ad_proc -public im_cost_update_project_cost_cache {
 						and parent.project_id = :project_id
 				)
     "
-
    
     set subtotals_sql "
 	select
@@ -2335,6 +2363,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 	group by
 		cat.cost_type_id
     "
+    # ad_return_complaint 1 [im_ad_hoc_query -format html $subtotals_sql]
 
     # Get the list of all cost types. Do not check for enabled_p here.
     set cost_type_list [util_memoize [list db_list cost_type_category_list "select category_id from im_categories where category_type='Intranet Cost Type'"]]
@@ -2345,16 +2374,21 @@ ad_proc -public im_cost_update_project_cost_cache {
     if {![info exists subtotals([im_cost_type_expense_planned])]} { set subtotals([im_cost_type_expense_planned]) 0 }
     if {![info exists subtotals([im_cost_type_timesheet_budget])]} { set subtotals([im_cost_type_timesheet_budget]) 0 }
 
-    # Calculate the subtotals per cost type
-    # Roll up the category hierarchy
+    # Fraber 2023-03-22: Don't roll-up! The portlet shows all cost types separately.
+    # Don't!: Roll up the category hierarchy
     db_foreach subtotals $subtotals_sql {
 	if {"" == $amount_converted} { set amount_converted 0.0 }
-	set super_cost_type_ids [util_memoize [list db_list super_cats "select distinct category_id from (select $cost_type_id as category_id UNION select parent_id as category_id from im_category_hierarchy where child_id = $cost_type_id) t"]]
+	set super_cost_type_ids [util_memoize [list db_list super_cats "
+		select	distinct category_id 
+		from	(select	$cost_type_id as category_id 
+			-- Do not include super-categories!
+			-- UNION select parent_id as category_id from im_category_hierarchy where child_id = $cost_type_id
+			) t
+	"]]
 	foreach id $super_cost_type_ids {
 	    set subtotals($id) [expr $amount_converted + $subtotals($id)]
 	}
     }
-
 
     # --------------------------------------------------------------------
     # Calculate "Planned Timesheet" cost according to a parameter
@@ -2446,7 +2480,6 @@ ad_proc -public im_cost_update_project_cost_cache {
 	set subtotals([im_cost_type_timesheet_budget]) $ts_budget
     }
 
-
     # Calculate timesheet preliminary cost based on assigned hours to tasks and hourly cost.
     if {"assigned_users_weighted_cost" eq $planned_hours_method} {
 	set timesheet_assignment_value_inner_sql "
@@ -2478,7 +2511,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 				sub_p.tree_sortkey between main_p.tree_sortkey and tree_right(main_p.tree_sortkey) and
 				e.employee_id not in (select member_id from group_distinct_member_map where group_id = [im_profile_skill_profile])
         "
-#	ad_return_complaint 1 [im_ad_hoc_query -format html $timesheet_assignment_value_inner_sql]
+	# ad_return_complaint 1 [im_ad_hoc_query -format html $timesheet_assignment_value_inner_sql]
 
 	# Aggregate by task, so that we can catch the case that there are no resources assigned to the task.
 	set timesheet_assignment_value_middle_sql "
@@ -2492,7 +2525,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 		group by
 			sub_project_id, sub_project_name
         "
-#	ad_return_complaint 1 [im_ad_hoc_query -format html $timesheet_assignment_value_middle_sql]
+	# ad_return_complaint 1 [im_ad_hoc_query -format html $timesheet_assignment_value_middle_sql]
 
 	# Aggregate everything together.
 	set timesheet_assignment_value_sql "
@@ -2503,7 +2536,7 @@ ad_proc -public im_cost_update_project_cost_cache {
 			)
 		from	($timesheet_assignment_value_middle_sql) t
         "
-#	ad_return_complaint 1 [im_ad_hoc_query -format html $timesheet_assignment_value_sql]
+	# ad_return_complaint 1 [im_ad_hoc_query -format html $timesheet_assignment_value_sql]
 
 	set subtotals([im_cost_type_timesheet_budget]) [db_string timesheet_assignment_value $timesheet_assignment_value_sql]
     }
@@ -2527,12 +2560,10 @@ ad_proc -public im_cost_update_project_cost_cache {
 	if {"" eq $expense_budget} { set expense_budget 0.0 }
 	set subtotals([im_cost_type_expense_planned]) $expense_budget
     }
-
     
     # --------------------------------------------------------------------
     #
     # --------------------------------------------------------------------
-
 
     # We can update the profit & loss because all financial documents
     # have been converted to default_currency
@@ -2564,7 +2595,6 @@ ad_proc -public im_cost_update_project_cost_cache {
 	ad_return_complaint 1 "<table>$debug_html</table>"
 	ad_script_abort
     }
-
 
     return [array get subtotals]
 }

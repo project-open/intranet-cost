@@ -435,11 +435,7 @@ ad_proc -public im_cc_read_p {
     if {0 == $user_id} { set user_id [ad_conn user_id] }
     if {0 == $cost_center_id} { set cost_center_id [im_cost_center_company] }
     if {0 != $cost_type_id} {
-	set privilege [util_memoize [list db_string priv "
-		select read_privilege 
-		from im_cost_types 
-		where cost_type_id in (select * from im_sub_categories($cost_type_id))
-	" -default ""]]
+	set privilege [util_memoize [list db_string priv "select read_privilege from im_cost_types where cost_type_id = $cost_type_id" -default ""]]
     }
     if {"" == $privilege} { set privilege "fi_read_all" }
 
@@ -471,11 +467,7 @@ ad_proc -public im_cc_write_p {
     if {0 == $user_id} { set user_id [ad_conn user_id] }
     if {0 == $cost_center_id} { set cost_center_id [im_cost_center_company] }
     if {0 != $cost_type_id} {
-	set privilege [util_memoize [list db_string priv "
-		select write_privilege 
-		from im_cost_types 
-		where cost_type_id in (select * from im_sub_categories($cost_type_id))
-	" -default ""]]
+	set privilege [util_memoize [list db_string priv "select write_privilege from im_cost_types where cost_type_id = $cost_type_id" -default ""]]
     }
     if {"" == $privilege} { set privilege "fi_write_all" }
 
@@ -516,7 +508,7 @@ ad_proc -public im_cost_center_write_p_helper {
     return [db_string cc_perms "
 	select	im_object_permission_p(:cost_center_id, :user_id, ct.write_privilege)
 	from	im_cost_types ct
-	where	ct.cost_type_id in (select * from im_sub_categories(:cost_type_id))
+	where	ct.cost_type_id = :cost_type_id
     " -default "f"]
 }
 
