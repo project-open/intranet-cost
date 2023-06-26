@@ -1017,8 +1017,8 @@ ad_proc im_costs_base_component {
 
     set bgcolor(0) " class=roweven "
     set bgcolor(1) " class=rowodd "
-    set max_costs 5
-    set colspan 5
+    set max_costs 10
+    set colspan 6
     set org_project_id $project_id
     set org_company_id $company_id
 
@@ -1121,6 +1121,7 @@ ad_proc im_costs_base_component {
 	    <td align=center class=rowtitle>[_ intranet-cost.Type]</td>
 	    <td align=center class=rowtitle>[_ intranet-cost.Due]</td>
 	    <td align=center class=rowtitle>[_ intranet-cost.Amount]</td>
+	    <td align=center class=rowtitle>[_ intranet-cost.Status]</td>
 	    <td align=center class=rowtitle>[_ intranet-cost.Paid]</td>
 	  </tr>
     "
@@ -1138,6 +1139,7 @@ ad_proc im_costs_base_component {
 		  <td>$cost_type</td>
 		  <td>$calculated_due_date</td>
 		  <td>$amount $currency</td>
+		  <td>$cost_status</td>
 		  <td>$payment_amount $payment_currency</td>
 		</tr>
 	"
