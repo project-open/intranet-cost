@@ -1551,7 +1551,7 @@ ad_proc im_costs_project_finance_component {
 			<tr class=rowplain>
 			  <td colspan=[expr $colspan - 3 + $show_status_p + $show_subprojects_p]>&nbsp;</td>
 			  <td align='right' colspan=1>
-			    <b><nobr>[lc_numeric $sum] $default_currency</nobr></b>
+			    <b><nobr>[lc_numeric $sum "" "en_US"] $default_currency</nobr></b>
 			  </td>
 		    "
 		    if {$show_payments_p} { append cost_html "<td>&nbsp</td>\n<td>&nbsp</td>\n" }
