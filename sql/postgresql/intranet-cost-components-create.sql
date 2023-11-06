@@ -70,10 +70,15 @@ SELECT im_component_plugin__new (
 	'Top 10 Unpaid Customer Invoices',	-- plugin_name - shown in menu
 	'intranet-cost',			-- package_name
 	'left',					-- location
-	'/intranet-cost/index',			-- page_url
+	'/intranet-invoices/dashboard',		-- page_url
 	null,					-- view_name
-	10,					-- sort_order
-	'
+	15,					-- sort_order
+	'set a "not implemented yet"',
+	'lang::message::lookup "" intranet-cost.Top_10_Unpaid_Customer_Invoices "Top 10 Unpaid Customer Invoices"'
+);
+
+update im_component_plugins
+set component_tcl = '
 im_ad_hoc_query -format html -package_key intranet-cost "
 select	''<a href=/intranet-invoices/view?invoice_id='' || c.cost_id || ''>'' || c.cost_name || ''</a>'' as document_nr,
 	''<a href=/intranet-cost/cost-centers/new?cost_center_id='' || c.cost_center_id || ''>'' || im_cost_center_code_from_id(c.cost_center_id) || ''</a>'' as cost_center,
@@ -82,14 +87,11 @@ select	''<a href=/intranet-invoices/view?invoice_id='' || c.cost_id || ''>'' || 
 	c.amount::text || '' '' || c.currency as amount,
 	c.paid_amount::text || '' '' || c.paid_currency as paid_amount
 from	im_costs c
-where	c.cost_type_id = 3700 and
+where	c.cost_type_id in (select * from im_sub_categories(3700)) and
 	c.cost_status_id not in (3810, 3814, 3816, 3818)
 order by coalesce(c.amount,0) DESC
-limit 10
-"',
-	'lang::message::lookup "" intranet-cost.Top_10_Unpaid_Customer_Invoices "Top 10 Unpaid Customer Invoices"'
-);
-
+limit 10"'
+where plugin_name = 'Top 10 Unpaid Customer Invoices';
 
 
 SELECT im_component_plugin__new (
