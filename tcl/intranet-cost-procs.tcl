@@ -1632,10 +1632,6 @@ ad_proc im_costs_project_finance_component {
 	  <td><nobr>$cost_url[string range $cost_name 0 30]</A></nobr></td>
 	  <td>$cost_center_code</td>
         "
-	if {$show_budget_p} {
-	    append cost_html "<td>[acs_object_name $budget_item_id]</td>"
-	}
-
 
 	if {$show_subprojects_p} {
 	    if {$project_count > 1 || ("" ne $min_project_id && $project_id ne $min_project_id)} {
@@ -1653,6 +1649,11 @@ ad_proc im_costs_project_finance_component {
 		append cost_html "<td><a href=[export_vars -base "/intranet/projects/view" {project_id}]>$project_name</a></td>"
 	    }
 	}
+
+	if {$show_budget_p} {
+	    append cost_html "<td>[acs_object_name $budget_item_id]</td>"
+	}
+
         append cost_html "<td>$company_name</td>\n"
 	if {$show_status_p} {
 	    append cost_html "<td>$cost_status</td>\n"
