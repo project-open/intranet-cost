@@ -1338,10 +1338,15 @@ ad_proc im_costs_project_finance_component {
     
     set bgcolor(0) "roweven"
     set bgcolor(1) "rowodd"
-    set colspan 7
     set date_format "YYYY-MM-DD"
     set num_format "9,999,999,999.99"
     set return_url [im_url_with_query]
+    
+    # Colspan for subtotals: Fixed columns: Document, Cost Center, Company, Amount. 
+    # Subtract 1 for the Amount column to show the subtotal:
+    # $show_subprojects_p: Sub-project, $show_budget_p: Budget Item, $show_status_p: Status, 
+    # $show_effective_date_p: Effective Date, $show_due_date_p: Due Date, $show_payments_p: Org Amount + Paid
+    set colspan_subtotal [expr 4-1 + $show_subprojects_p + $show_budget_p + $show_status_p + $show_effective_date_p + $show_due_date_p + 2*$show_payments_p]
 
     # Round to two digits by default
     set rounding_factor 100.0
@@ -1549,7 +1554,7 @@ ad_proc im_costs_project_finance_component {
 		    set sum [im_numeric_add_trailing_zeros [expr round(100.0 * $subtotals($old_cost_type_id)) / 100.0] 2]
 		    append cost_html "
 			<tr class=rowplain>
-			  <td colspan=[expr $colspan - 3 + $show_status_p + $show_subprojects_p]>&nbsp;</td>
+			  <td colspan=$colspan_subtotal>&nbsp;</td>
 			  <td align='right' colspan=1>
 			    <b><nobr>[lc_numeric $sum] $default_currency</nobr></b>
 			  </td>
@@ -1710,7 +1715,7 @@ ad_proc im_costs_project_finance_component {
 	if {!$atleast_one_unreadable_p} {
 	    append cost_html "
 		<tr class=rowplain>
-		  <td colspan=[expr $colspan - 3 + $show_status_p + $show_subprojects_p]>&nbsp;</td>
+		  <td colspan=$colspan_subtotal>&nbsp;</td>
 		  <td colspan='1' align=right>
 		    <b><nobr>[lc_numeric $subtotals($old_cost_type_id)] $default_currency</nobr></b>
 		  </td>
