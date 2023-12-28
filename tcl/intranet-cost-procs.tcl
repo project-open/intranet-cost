@@ -1296,7 +1296,8 @@ ad_proc im_costs_project_finance_component {
     set show_status_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowStatusP" -default 1]
     set show_notes_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowNotesP" -default 0]
     set show_lines_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowLinesP" -default 0]
-    set show_budget_p [im_column_exists im_costs budget_item_id]
+    set show_budget_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowBudgetP" -default 0]
+    if {![im_column_exists im_costs budget_item_id]} { set show_budget_p 0 }
     set show_due_date_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowDueDateP" -default 0]
     set show_effective_date_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowEffectiveDateP" -default 1]
 
