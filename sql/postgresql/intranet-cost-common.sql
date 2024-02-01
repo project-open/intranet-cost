@@ -96,6 +96,8 @@ SELECT im_category_new (3746,'Purchase Request','Intranet Cost Type');
 -- SELECT im_category_new (3748,'Purchase Etc','Intranet Cost Type');
 -- 3750 reserved for cosine "mission
 SELECT im_category_new (3752,'Cancellation Invoice','Intranet Cost Type');
+SELECT im_category_new (3760,'InterCo Bill','Intranet Cost Type');
+SELECT im_category_new (3762,'InterCo Purchase Order','Intranet Cost Type');
 
 
 -- reserved until 3799

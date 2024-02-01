@@ -1,4 +1,4 @@
-# /packages/intranet-invoices/tcl/intranet-cost-procs.tcl
+# /packages/intranet-cost/tcl/intranet-cost-procs.tcl
 #
 # Copyright (C) 2003 - 2009 ]project-open[
 #
@@ -68,6 +68,9 @@ ad_proc -public im_cost_type_purchase_request {} { return 3746 }
 ad_proc -public im_cost_type_purchase_etc {} { return 3748 }
 # 3750 reserved for cosine "mission"
 ad_proc -public im_cost_type_cancellation_invoice {} { return 3752 }
+# 3754, 3756, 3758 still free
+ad_proc -public im_cost_type_interco_bill {} { return 3760 }
+ad_proc -public im_cost_type_interco_purchase_order {} { return 3762 }
 
 
 ad_proc -public im_cost_type_short_name { cost_type_id } { 
@@ -89,7 +92,16 @@ ad_proc -public im_cost_type_short_name { cost_type_id } {
 	3728 { return "expense_planned" }
 	3730 { return "interco_invoice" }
 	3732 { return "interco_quote" }
+	3734 { return "provider_receipt" }
+	3738 { return "planned_purchase" }
+	3740 { return "customer_po" }
+	3742 { return "goods_received" }
+	3744 { return "goods_accepted" }
+	3746 { return "purchase_request" }
+	3748 { return "purchase_etc" }
 	3752 { return "cancellation_invoice" }
+	3760 { return "interco_bill" }
+	3762 { return "interco_purchase_order" }
 	default { return "unknown" }
     }
 }
@@ -148,6 +160,7 @@ ad_proc -public im_cost_type_is_invoice_or_bill_p { cost_type_id } {
     set invoice_or_bill_p [expr \
 			       [im_category_is_a $cost_type_id [im_cost_type_invoice]] || \
 			       [im_category_is_a $cost_type_id [im_cost_type_bill]] \
+			       [im_category_is_a $cost_type_id [im_cost_type_interco_bill]] \
 			      ]
     return $invoice_or_bill_p
 }
@@ -1551,7 +1564,7 @@ ad_proc im_costs_project_finance_component {
 		    set sum [im_numeric_add_trailing_zeros [expr round(100.0 * $subtotals($old_cost_type_id)) / 100.0] 2]
 		    append cost_html "
 			<tr class=rowplain>
-			  <td colspan=[expr $colspan - 3 + $show_status_p + $show_subprojects_p]>&nbsp;</td>
+			  <td colspan=[expr $colspan - 2 + $show_status_p + $show_subprojects_p]>&nbsp;</td>
 			  <td align='right' colspan=1>
 			    <b><nobr>[lc_numeric $sum "" "en_US"] $default_currency</nobr></b>
 			  </td>
@@ -1712,7 +1725,7 @@ ad_proc im_costs_project_finance_component {
 	if {!$atleast_one_unreadable_p} {
 	    append cost_html "
 		<tr class=rowplain>
-		  <td colspan=[expr $colspan - 3 + $show_status_p + $show_subprojects_p]>&nbsp;</td>
+		  <td colspan=[expr $colspan - 2 + $show_status_p + $show_subprojects_p]>&nbsp;</td>
 		  <td colspan='1' align=right>
 		    <b><nobr>[lc_numeric $subtotals($old_cost_type_id)] $default_currency</nobr></b>
 		  </td>
