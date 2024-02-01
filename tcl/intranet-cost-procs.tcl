@@ -1311,7 +1311,8 @@ ad_proc im_costs_project_finance_component {
     set show_status_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowStatusP" -default 1]
     set show_notes_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowNotesP" -default 0]
     set show_lines_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowLinesP" -default 0]
-    set show_budget_p [im_column_exists im_costs budget_item_id]
+    set show_budget_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowBudgetP" -default 0]
+    if {![im_column_exists im_costs budget_item_id]} { set show_budget_p 0 }
     set show_due_date_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowDueDateP" -default 0]
     set show_effective_date_p [parameter::get_from_package_key -package_key intranet-cost -parameter "ProjectCostShowEffectiveDateP" -default 1]
 
@@ -1353,10 +1354,15 @@ ad_proc im_costs_project_finance_component {
     
     set bgcolor(0) "roweven"
     set bgcolor(1) "rowodd"
-    set colspan 7
     set date_format "YYYY-MM-DD"
     set num_format "9,999,999,999.99"
     set return_url [im_url_with_query]
+    
+    # Colspan for subtotals: Fixed columns: Document, Cost Center, Company, Amount. 
+    # Subtract 1 for the Amount column to show the subtotal:
+    # $show_subprojects_p: Sub-project, $show_budget_p: Budget Item, $show_status_p: Status, 
+    # $show_effective_date_p: Effective Date, $show_due_date_p: Due Date, $show_payments_p: Org Amount + Paid
+    set colspan_subtotal [expr 4-1 + $show_subprojects_p + $show_budget_p + $show_status_p + $show_effective_date_p + $show_due_date_p + 2*$show_payments_p]
 
     # Round to two digits by default
     set rounding_factor 100.0
@@ -1564,7 +1570,7 @@ ad_proc im_costs_project_finance_component {
 		    set sum [im_numeric_add_trailing_zeros [expr round(100.0 * $subtotals($old_cost_type_id)) / 100.0] 2]
 		    append cost_html "
 			<tr class=rowplain>
-			  <td colspan=[expr $colspan - 2 + $show_status_p + $show_subprojects_p]>&nbsp;</td>
+			  <td colspan=$colspan_subtotal>&nbsp;</td>
 			  <td align='right' colspan=1>
 			    <b><nobr>[lc_numeric $sum "" "en_US"] $default_currency</nobr></b>
 			  </td>
@@ -1642,10 +1648,6 @@ ad_proc im_costs_project_finance_component {
 	  <td><nobr>$cost_url[string range $cost_name 0 30]</A></nobr></td>
 	  <td>$cost_center_code</td>
         "
-	if {$show_budget_p} {
-	    append cost_html "<td>[acs_object_name $budget_item_id]</td>"
-	}
-
 
 	if {$show_subprojects_p} {
 	    if {$project_count > 1 || ("" ne $min_project_id && $project_id ne $min_project_id)} {
@@ -1663,6 +1665,11 @@ ad_proc im_costs_project_finance_component {
 		append cost_html "<td><a href=[export_vars -base "/intranet/projects/view" {project_id}]>$project_name</a></td>"
 	    }
 	}
+
+	if {$show_budget_p} {
+	    append cost_html "<td>[acs_object_name $budget_item_id]</td>"
+	}
+
         append cost_html "<td>$company_name</td>\n"
 	if {$show_status_p} {
 	    append cost_html "<td>$cost_status</td>\n"
@@ -1725,7 +1732,7 @@ ad_proc im_costs_project_finance_component {
 	if {!$atleast_one_unreadable_p} {
 	    append cost_html "
 		<tr class=rowplain>
-		  <td colspan=[expr $colspan - 2 + $show_status_p + $show_subprojects_p]>&nbsp;</td>
+		  <td colspan=$colspan_subtotal>&nbsp;</td>
 		  <td colspan='1' align=right>
 		    <b><nobr>[lc_numeric $subtotals($old_cost_type_id)] $default_currency</nobr></b>
 		  </td>
