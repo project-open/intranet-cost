@@ -46,7 +46,7 @@ ad_proc -public im_cost_type_po {} { return 3706 }
 ad_proc -public im_cost_type_company_doc {} { return 3708 }
 ad_proc -public im_cost_type_customer_doc {} { return 3708 }
 ad_proc -public im_cost_type_provider_doc {} { return 3710 }
-ad_proc -public im_cost_type_provider_travel {} { return 3712 }
+# ad_proc -public im_cost_type_provider_travel {} { return 3712 }
 ad_proc -public im_cost_type_employee {} { return 3714 }
 ad_proc -public im_cost_type_repeating {} { return 3716 }
 ad_proc -public im_cost_type_timesheet {} { return 3718 }
@@ -67,6 +67,7 @@ ad_proc -public im_cost_type_goods_accepted {} { return 3744 }
 ad_proc -public im_cost_type_purchase_request {} { return 3746 }
 ad_proc -public im_cost_type_purchase_etc {} { return 3748 }
 # 3750 reserved for cosine "mission"
+ad_proc -public im_cost_type_cancellation_invoice {} { return 3752 }
 
 
 ad_proc -public im_cost_type_short_name { cost_type_id } { 
@@ -88,6 +89,7 @@ ad_proc -public im_cost_type_short_name { cost_type_id } {
 	3728 { return "expense_planned" }
 	3730 { return "interco_invoice" }
 	3732 { return "interco_quote" }
+	3752 { return "cancellation_invoice" }
 	default { return "unknown" }
     }
 }
@@ -1557,7 +1559,7 @@ ad_proc im_costs_project_finance_component {
 			<tr class=rowplain>
 			  <td colspan=$colspan_subtotal>&nbsp;</td>
 			  <td align='right' colspan=1>
-			    <b><nobr>[lc_numeric $sum] $default_currency</nobr></b>
+			    <b><nobr>[lc_numeric $sum "" "en_US"] $default_currency</nobr></b>
 			  </td>
 		    "
 		    if {$show_payments_p} { append cost_html "<td>&nbsp</td>\n<td>&nbsp</td>\n" }
@@ -1815,6 +1817,11 @@ ad_proc im_costs_project_finance_component {
   <tr>
     <td>[_ intranet-cost.Customer_Invoices]</td>\n"
     set subtotal $subtotals([im_cost_type_invoice])
+    set cancelled 0
+    if {[info exists subtotals([im_cost_type_cancellation_invoice])]} {
+	set cancelled $subtotals([im_cost_type_cancellation_invoice])
+    }
+    set subtotal [expr $subtotal + $cancelled]    
     append hard_cost_html "<td align=right>$subtotal $default_currency</td>\n"
     set grand_total $subtotal
 
@@ -2396,7 +2403,9 @@ ad_proc -public im_cost_update_project_cost_cache {
 	    set subtotals($id) [expr $amount_converted + $subtotals($id)]
 	}
     }
+    # ad_return_complaint 1 [array get subtotals]
 
+    
     # --------------------------------------------------------------------
     # Calculate "Planned Timesheet" cost according to a parameter
     # --------------------------------------------------------------------
@@ -2576,7 +2585,7 @@ ad_proc -public im_cost_update_project_cost_cache {
     # have been converted to default_currency
     db_dml update_projects "
 	update im_projects set
-		cost_invoices_cache = $subtotals([im_cost_type_invoice]),
+		cost_invoices_cache = $subtotals([im_cost_type_invoice]) + $subtotals([im_cost_type_cancellation_invoice]),
 		cost_delivery_notes_cache = $subtotals([im_cost_type_delivery_note]),
 		cost_quotes_cache = $subtotals([im_cost_type_quote]),
 		cost_bills_cache = $subtotals([im_cost_type_bill]),
@@ -2728,6 +2737,7 @@ ad_proc -public im_cost_project_document_icons_helper {
 	    3702 { set gif "q" }
 	    3704 { set gif "b" }
 	    3706 { set gif "p" }
+	    3752 { set gif "c" }
 	    default { set gif "cross" }
 	}
 	set alt_txt "$cost_name, [lang::message::lookup "" intranet-cost.Amount Amount]:$amount_converted"

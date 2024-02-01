@@ -31,10 +31,14 @@ group by
       main_p.project_id, main_p.project_name,
       c.cost_type_id
 "
+# ad_return_complaint 1 [im_ad_hoc_query -format html $cost_sql]
 
 db_foreach cost_info $cost_sql {
     set project_hash($project_id) $project_name
 
+    # Handle Cancelation Invoices just like invoices
+    if {[im_cost_type_cancellation_invoice] == $cost_type_id} { set cost_type_id [im_cost_type_invoice] }
+    
     # Roll-up values to super cost types
     set super_cost_type_ids [util_memoize [list db_list super_cats "select distinct category_id from (select $cost_type_id as category_id UNION select parent_id as category_id from im_category_hierarchy where child_id = $cost_type_id) t"]]
     foreach ctid $super_cost_type_ids {

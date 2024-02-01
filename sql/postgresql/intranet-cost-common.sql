@@ -69,10 +69,12 @@ SELECT im_category_new (910,'po.es.adp','Intranet Cost Template');
 -- Creating category Cost Type
 SELECT im_category_new (3700,'Customer Invoice','Intranet Cost Type');
 SELECT im_category_new (3702,'Quote','Intranet Cost Type');
+SELECT im_category_new (3703,'Order','Intranet Cost Type');
 SELECT im_category_new (3704,'Provider Bill','Intranet Cost Type');
 SELECT im_category_new (3706,'Purchase Order','Intranet Cost Type');
 SELECT im_category_new (3708,'Customer Documents','Intranet Cost Type');
 SELECT im_category_new (3710,'Provider Documents','Intranet Cost Type');
+-- SELECT im_category_new (3712,'Provider Travel ???','Intranet Cost Type');
 SELECT im_category_new (3714,'Employee Salary','Intranet Cost Type');
 SELECT im_category_new (3716,'Repeating Cost','Intranet Cost Type');
 SELECT im_category_new (3718,'Timesheet Cost','Intranet Cost Type');
@@ -84,13 +86,18 @@ SELECT im_category_new (3728,'Expense Planned Cost','Intranet Cost Type');
 SELECT im_category_new (3730,'InterCo Invoice','Intranet Cost Type');
 SELECT im_category_new (3732,'InterCo Quote','Intranet Cost Type');
 SELECT im_category_new (3734,'Provider Receipt','Intranet Cost Type');
-SELECT im_category_new (3736,'Timesheet Hours','Intranet Cost Type'); -- Fake cost types for timesheet_hours
+-- Fake cost types for timesheet_hours
+SELECT im_category_new (3736,'Timesheet Hours','Intranet Cost Type');
 SELECT im_category_new (3738,'Planned Purchase','Intranet Cost Type');
 SELECT im_category_new (3740,'Customer Purchase Order','Intranet Cost Type');
 SELECT im_category_new (3742,'Goods Received','Intranet Cost Type');
 SELECT im_category_new (3744,'Goods Accepted','Intranet Cost Type');
-SELECT im_category_new (3744,'Purchase Request','Intranet Cost Type');
 SELECT im_category_new (3746,'Purchase Request','Intranet Cost Type');
+-- SELECT im_category_new (3748,'Purchase Etc','Intranet Cost Type');
+-- 3750 reserved for cosine "mission
+SELECT im_category_new (3752,'Cancellation Invoice','Intranet Cost Type');
+
+
 -- reserved until 3799
 
 
@@ -110,6 +117,10 @@ SELECT im_category_hierarchy_new(3724,3708);
 -- Defined InterCo Quote and Invoices as customer document
 SELECT im_category_hierarchy_new(3730,3708);
 SELECT im_category_hierarchy_new(3732,3708);
+
+-- Cancellation Invoice _is_a_ customer document and an invoice
+SELECT im_category_hierarchy_new(3752,3700);
+SELECT im_category_hierarchy_new(3752,3708);
 
 
 

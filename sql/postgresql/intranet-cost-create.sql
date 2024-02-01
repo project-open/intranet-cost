@@ -374,7 +374,7 @@ create or replace view im_cost_types as
 select	category_id as cost_type_id, 
 	category as cost_type,
 	CASE 
-	    WHEN category_id = 3700 THEN 'fi_read_invoices'
+	    WHEN category_id in (3700, 3752) THEN 'fi_read_invoices'
 	    WHEN category_id = 3702 THEN 'fi_read_quotes'
 	    WHEN category_id = 3704 THEN 'fi_read_bills'
 	    WHEN category_id = 3706 THEN 'fi_read_pos'
@@ -388,7 +388,7 @@ select	category_id as cost_type_id,
 	    ELSE 'fi_read_all'
 	END as read_privilege,
 	CASE 
-	    WHEN category_id = 3700 THEN 'fi_write_invoices'
+	    WHEN category_id in (3700, 3752) THEN 'fi_write_invoices'
 	    WHEN category_id = 3702 THEN 'fi_write_quotes'
 	    WHEN category_id = 3704 THEN 'fi_write_bills'
 	    WHEN category_id = 3706 THEN 'fi_write_pos'
@@ -402,7 +402,7 @@ select	category_id as cost_type_id,
 	    ELSE 'fi_write_all'
 	END as write_privilege,
 	CASE 
-	    WHEN category_id = 3700 THEN 'invoice'
+	    WHEN category_id in (3700, 3752) THEN 'invoice'
 	    WHEN category_id = 3702 THEN 'quote'
 	    WHEN category_id = 3704 THEN 'bill'
 	    WHEN category_id = 3706 THEN 'po'
@@ -620,7 +620,7 @@ begin
 	from	im_companies c
 	where	c.company_path = 'internal';
 
-	IF v_cost_type_id not in (3700,3702,3704,3706,3720,3724,3730,3732) THEN
+	IF v_cost_type_id not in (3700,3702,3704,3706,3720,3724,3730,3732,3752) THEN
 		return 'invalid cost type: ' || v_cost_type;
 	END IF;
 
@@ -657,7 +657,7 @@ begin
 	END IF;
 	RAISE NOTICE 'im_cost_vat_type_from_cost_id: v_provider_eu_p=%', v_provider_eu_p;
 
-	IF v_cost_type_id in (3700,3702,3730,3732)
+	IF v_cost_type_id in (3700,3702,3730,3732,3752)
 		THEN v_cost_is_invoice_or_quote_p := 1;
 		ELSE v_cost_is_invoice_or_quote_p := 0;
 	END IF;
