@@ -159,7 +159,7 @@ ad_proc -public im_cost_type_is_invoice_or_bill_p { cost_type_id } {
     if {"" eq $cost_type_id} { set cost_type_id 0 }
     set invoice_or_bill_p [expr \
 			       [im_category_is_a $cost_type_id [im_cost_type_invoice]] || \
-			       [im_category_is_a $cost_type_id [im_cost_type_bill]] \
+			       [im_category_is_a $cost_type_id [im_cost_type_bill]] || \
 			       [im_category_is_a $cost_type_id [im_cost_type_interco_bill]] \
 			      ]
     return $invoice_or_bill_p
