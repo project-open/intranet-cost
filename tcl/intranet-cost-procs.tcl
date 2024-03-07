@@ -1749,7 +1749,7 @@ ad_proc im_costs_project_finance_component {
     if {$ctr == 1} {
 	append cost_html "
 	<tr class=\"$bgcolor([expr {$ctr % 2}])\">
-	  <td colspan=$colspan align=center>
+	  <td colspan=99 align=center>
 	    <I>[_ intranet-cost.lt_No_financial_document]</I>
 	  </td>
 	</tr>\n"
