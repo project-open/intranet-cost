@@ -455,7 +455,7 @@ set button_html "
 # 10. Join all parts together
 # ---------------------------------------------------------------
 
-set sub_navbar [im_costs_navbar "none" "/intranet-cost/list" $next_page_url $previous_page_url [list cost_status_id cost_type_id company_id start_idx order_by how_many view_name letter start_date end_date] ""] 
+set sub_navbar [im_costs_navbar "none" "/intranet-cost/list" $next_page_url $previous_page_url [list cost_status_id cost_type_id company_id start_idx order_by how_many start_date end_date] ""] 
 
 
 set left_navbar_html "
