@@ -2394,12 +2394,9 @@ ad_proc -public im_cost_update_project_cost_cache {
 
     # Get the list of all cost types. Do not check for enabled_p here.
     set cost_type_list [util_memoize [list db_list cost_type_category_list "select category_id from im_categories where category_type='Intranet Cost Type'"]]
-    foreach category_id $cost_type_list {
-	set subtotals($category_id) 0
-    }
-    # Deal with configuration errors
-    if {![info exists subtotals([im_cost_type_expense_planned])]} { set subtotals([im_cost_type_expense_planned]) 0 }
-    if {![info exists subtotals([im_cost_type_timesheet_budget])]} { set subtotals([im_cost_type_timesheet_budget]) 0 }
+    lappend cost_type_list [im_cost_type_timesheet_budget]; # timesheet budget is not a cost type category!!!
+    lappend cost_type_list [im_cost_type_expense_planned]
+    foreach category_id $cost_type_list { set subtotals($category_id) 0 }
 
     # Fraber 2023-03-22: Don't roll-up! The portlet shows all cost types separately.
     # Don't!: Roll up the category hierarchy
@@ -2558,11 +2555,11 @@ ad_proc -public im_cost_update_project_cost_cache {
 
 	# Aggregate everything together.
 	set timesheet_assignment_value_sql "
-		select	sum(
+		select	coalesce(sum(
 				-- Take the cost of assigned users, 
 				-- or use default_hourly_cost for tasks without assignments
 				coalesce(cost_assigned_users, task_planned_units * :default_hourly_cost)
-			)
+			),0)
 		from	($timesheet_assignment_value_middle_sql) t
         "
 	# ad_return_complaint 1 [im_ad_hoc_query -format html $timesheet_assignment_value_sql]
