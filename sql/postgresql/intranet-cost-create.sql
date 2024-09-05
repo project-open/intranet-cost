@@ -124,6 +124,7 @@ create table im_costs (
 				not null
 				constraint im_costs_type_fk
 				references im_categories,
+	sort_order		integer,
 	-- reference to an object that has caused this cost,
 	-- in particular used by im_repeating_costs
 	cause_object_id		integer

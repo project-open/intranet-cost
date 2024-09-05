@@ -1730,11 +1730,12 @@ ad_proc im_costs_project_finance_component {
     # Write the subtotal line of the last cost_type_id section
     if {$ctr > 1} {
 	if {!$atleast_one_unreadable_p} {
+	    set sum [im_numeric_add_trailing_zeros [expr round(100.0 * $subtotals($old_cost_type_id)) / 100.0] 2]
 	    append cost_html "
 		<tr class=rowplain>
 		  <td colspan=$colspan_subtotal>&nbsp;</td>
 		  <td colspan='1' align=right>
-		    <b><nobr>[lc_numeric $subtotals($old_cost_type_id)] $default_currency</nobr></b>
+		    <b><nobr>[lc_numeric $sum "" "en_US"] $default_currency</nobr></b>
 		  </td>
 		</tr>
             "
