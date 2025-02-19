@@ -1047,7 +1047,7 @@ ad_proc im_costs_base_component {
     set bgcolor(0) " class=roweven "
     set bgcolor(1) " class=rowodd "
     set max_costs 10
-    set colspan 6
+    set colspan 7
     set org_project_id $project_id
     set org_company_id $company_id
 
@@ -1102,6 +1102,7 @@ ad_proc im_costs_base_component {
 		ci.*,
 		ci.paid_amount as payment_amount,
 		ci.paid_currency as payment_currency,
+		(select max(pp.received_date)::date from im_payments pp where pp.cost_id = ci.cost_id) as payment_date,
 	        im_category_from_id(ci.cost_status_id) as cost_status,
 	        im_category_from_id(ci.cost_type_id) as cost_type,
 		to_date(to_char(ci.effective_date,'yyyymmdd'),'yyyymmdd') 
@@ -1152,6 +1153,7 @@ ad_proc im_costs_base_component {
 	    <td align=center class=rowtitle>[_ intranet-cost.Amount]</td>
 	    <td align=center class=rowtitle>[_ intranet-cost.Status]</td>
 	    <td align=center class=rowtitle>[_ intranet-cost.Paid]</td>
+	    <td align=center class=rowtitle>[lang::message::lookup "" intranet-cost.Paid_Date "Date"]</td>
 	  </tr>
     "
     set ctr 1
@@ -1170,6 +1172,7 @@ ad_proc im_costs_base_component {
 		  <td>$amount $currency</td>
 		  <td>$cost_status</td>
 		  <td>$payment_amount $payment_currency</td>
+		  <td>$payment_date</td>
 		</tr>
 	"
 	incr ctr
